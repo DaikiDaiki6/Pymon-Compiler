@@ -75,6 +75,7 @@ class Sem:
     def output_statement(self):
         output = ""
         try:
+# {'<output statement+>': 1}, {'<parameter+>': 2}, {'<math expression+>': 3}, {'<number value>': 3}, {'<math expression->': 3}, {'<parameter->': 4}, {'<output statement->': 4}
             while self.c1 != '<output statement->':
                 if self.c1 == '<parameter+>':
                     output = self.parameter()  # Get the output from self.parameter
@@ -174,6 +175,9 @@ class Sem:
 
                 if a in error_list:
                     self.Output.append(f"|||Semantic Error: {b}: Line {self.line_ctr(self.c2)}")
+                elif "unexpected EOF while parsing" in a:
+                    self.Output.append(
+                        f"|||Semantic Error: star cannot be operated with other data types: Line {self.line_ctr(self.c2)}")
                 else:
                     self.Output.append(f"|||Semantic Error: Undeclared Variable in {cond_exp}: Line {self.line_ctr(self.c2)}")
         except:
@@ -392,51 +396,14 @@ class Sem:
                     self.Output.append(f"|||Semantic Error: range parameter \"range({h1})\": Line {self.line_ctr(self.c2)}")
 
                 if isinstance(result, int):  # Checking if the result is an integer
-                    for _ in range(result):
-                        if self.c1 == '<poor loop->':
-                            break
-                        if _ > 0: #it will go to startpos_loop after the 2nd iteration of the loop
-                            id = {id1: _}
-                            self.GlobalVar.update(id)
-                            self.GlobalDatatype.update({id1: "hint"})
-                            self.position = startpos_loop
-                            self.currentSequence = self.Sequence[self.position]
-                            ckeys = list(self.currentSequence.keys())
-                            cvalues = list(self.currentSequence.values())
-                            self.c1 = ckeys[0]
-                            self.c2 = cvalues[0]
-
-                        while self.c1 != '<poor loop->':  # execute the poor loop body
-                            if self.c1 == '<output statement+>':
-                                self.output_statement()
-                            elif self.c1 == '<loop condition+>':
-                                a = self.loop_condition()
-                                if a == "__STOP__":
-                                    while self.c1 != '<loop body->':
-                                        self.next()
-                                    break
-                            elif self.c1 in ['<poor loop+>', '<checkif loop+>']:
-                                self.loop_statement()
-                            elif self.c1 == '<initialization statement+>':
-                                self.initialization_statement()
-                            elif self.c1 == '<pass>':
-                                pass
-                            elif self.c1 == '<continue>':
-                                continue
-                            elif self.c1 == '<break>':
-                                while self.c1 != '<loop body->':
-                                    self.next()
-                                break
+                    if result <= 0:
+                        while self.c1 != '<poor loop->':
                             self.next()
-                        self.next()
-                    self.prev()
-                else:
-                    if len(result) == 1:
-                        stop = result[0]
-                        for _ in range(stop):
+                    else:
+                        for _ in range(result): #for i in range(){print(a)}   startpos_loop = 1
                             if self.c1 == '<poor loop->':
                                 break
-                            if _ > 0:
+                            if _ > 0: #it will go to startpos_loop after the 2nd iteration of the loop
                                 id = {id1: _}
                                 self.GlobalVar.update(id)
                                 self.GlobalDatatype.update({id1: "hint"})
@@ -447,7 +414,7 @@ class Sem:
                                 self.c1 = ckeys[0]
                                 self.c2 = cvalues[0]
 
-                            while self.c1 != '<poor loop->':
+                            while self.c1 != '<poor loop->':  # execute the poor loop body
                                 if self.c1 == '<output statement+>':
                                     self.output_statement()
                                 elif self.c1 == '<loop condition+>':
@@ -471,89 +438,182 @@ class Sem:
                                 self.next()
                             self.next()
                         self.prev()
+                else:
+                    if len(result) == 1:
+                        stop = result[0]
+                        if stop <= 0:
+                            while self.c1 != '<poor loop->':
+                                self.next()
+                        else:
+                            for _ in range(stop):
+                                if self.c1 == '<poor loop->':
+                                    break
+                                if _ > 0:
+                                    id = {id1: _}
+                                    self.GlobalVar.update(id)
+                                    self.GlobalDatatype.update({id1: "hint"})
+                                    self.position = startpos_loop
+                                    self.currentSequence = self.Sequence[self.position]
+                                    ckeys = list(self.currentSequence.keys())
+                                    cvalues = list(self.currentSequence.values())
+                                    self.c1 = ckeys[0]
+                                    self.c2 = cvalues[0]
 
+                                while self.c1 != '<poor loop->':
+                                    if self.c1 == '<output statement+>':
+                                        self.output_statement()
+                                    elif self.c1 == '<loop condition+>':
+                                        a = self.loop_condition()
+                                        if a == "__STOP__":
+                                            while self.c1 != '<loop body->':
+                                                self.next()
+                                            break
+                                    elif self.c1 in ['<poor loop+>', '<checkif loop+>']:
+                                        self.loop_statement()
+                                    elif self.c1 == '<initialization statement+>':
+                                        self.initialization_statement()
+                                    elif self.c1 == '<pass>':
+                                        pass
+                                    elif self.c1 == '<continue>':
+                                        continue
+                                    elif self.c1 == '<break>':
+                                        while self.c1 != '<loop body->':
+                                            self.next()
+                                        break
+                                    self.next()
+                                self.next()
+                            self.prev()
                     elif len(result) == 2:
                         start, stop = result
                         self.GlobalVar[id1] = start
-                        for _ in range(start, stop):
-                            if self.c1 == '<poor loop->':
-                                break
-                            if _ > start:
-                                id = {id1: self.GlobalVar[id1] + 1}
-                                self.GlobalVar.update(id)
-                                self.GlobalDatatype.update({id1: "hint"})
-                                self.position = startpos_loop
-                                self.currentSequence = self.Sequence[self.position]
-                                ckeys = list(self.currentSequence.keys())
-                                cvalues = list(self.currentSequence.values())
-                                self.c1 = ckeys[0]
-                                self.c2 = cvalues[0]
-
+                        if start >= stop:
                             while self.c1 != '<poor loop->':
-                                if self.c1 == '<output statement+>':
-                                    self.output_statement()
-                                elif self.c1 == '<loop condition+>':
-                                    a = self.loop_condition()
-                                    if a == "__STOP__":
+                                self.next()
+                        else:
+                            for _ in range(start, stop):
+                                if self.c1 == '<poor loop->':
+                                    break
+                                if _ > start:
+                                    id = {id1: self.GlobalVar[id1] + 1}
+                                    self.GlobalVar.update(id)
+                                    self.GlobalDatatype.update({id1: "hint"})
+                                    self.position = startpos_loop
+                                    self.currentSequence = self.Sequence[self.position]
+                                    ckeys = list(self.currentSequence.keys())
+                                    cvalues = list(self.currentSequence.values())
+                                    self.c1 = ckeys[0]
+                                    self.c2 = cvalues[0]
+
+                                while self.c1 != '<poor loop->':
+                                    if self.c1 == '<output statement+>':
+                                        self.output_statement()
+                                    elif self.c1 == '<loop condition+>':
+                                        a = self.loop_condition()
+                                        if a == "__STOP__":
+                                            while self.c1 != '<loop body->':
+                                                self.next()
+                                            break
+                                    elif self.c1 in ['<poor loop+>', '<checkif loop+>']:
+                                        self.loop_statement()
+                                    elif self.c1 == '<initialization statement+>':
+                                        self.initialization_statement()
+                                    elif self.c1 == '<pass>':
+                                        pass
+                                    elif self.c1 == '<continue>':
+                                        continue
+                                    elif self.c1 == '<break>':
                                         while self.c1 != '<loop body->':
                                             self.next()
                                         break
-                                elif self.c1 in ['<poor loop+>', '<checkif loop+>']:
-                                    self.loop_statement()
-                                elif self.c1 == '<initialization statement+>':
-                                    self.initialization_statement()
-                                elif self.c1 == '<pass>':
-                                    pass
-                                elif self.c1 == '<continue>':
-                                    continue
-                                elif self.c1 == '<break>':
-                                    while self.c1 != '<loop body->':
-                                        self.next()
-                                    break
+                                    self.next()
                                 self.next()
-                            self.next()
-                        self.prev()
+                            self.prev()
                     elif len(result) == 3:
                         start, stop, step = result
+                        print('try', start, stop, step)
                         self.GlobalVar[id1]= start
-                        for _ in range(start, stop, step):
-                            if self.c1 == '<poor loop->':
-                                break
-                            if _ > start:
-                                id = {id1: self.GlobalVar[id1] + step}
-                                self.GlobalVar.update(id)
-                                self.GlobalDatatype.update({id1: "hint"})
-                                self.position = startpos_loop
-                                self.currentSequence = self.Sequence[self.position]
-                                ckeys = list(self.currentSequence.keys())
-                                cvalues = list(self.currentSequence.values())
-                                self.c1 = ckeys[0]
-                                self.c2 = cvalues[0]
+                        if step == 0:
+                            self.Output.append(f"|||Semantic Error: Increment should not be {step}: Line {self.line_ctr(self.c2)}")
+                        elif start < stop and step > 0:
+                            for _ in range(start, stop, step):
+                                if self.c1 == '<poor loop->':
+                                    break
+                                if _ > start:
+                                    id = {id1: self.GlobalVar[id1] + step}
+                                    self.GlobalVar.update(id)
+                                    self.GlobalDatatype.update({id1: "hint"})
+                                    self.position = startpos_loop
+                                    self.currentSequence = self.Sequence[self.position]
+                                    ckeys = list(self.currentSequence.keys())
+                                    cvalues = list(self.currentSequence.values())
+                                    self.c1 = ckeys[0]
+                                    self.c2 = cvalues[0]
 
-                            while self.c1 != '<poor loop->':
-                                if self.c1 == '<output statement+>':
-                                    self.output_statement()
-                                elif self.c1 == '<loop condition+>':
-                                    a = self.loop_condition()
-                                    if a == "__STOP__":
+                                while self.c1 != '<poor loop->':
+                                    if self.c1 == '<output statement+>':
+                                        self.output_statement()
+                                    elif self.c1 == '<loop condition+>':
+                                        a = self.loop_condition()
+                                        if a == "__STOP__":
+                                            while self.c1 != '<loop body->':
+                                                self.next()
+                                            break
+                                    elif self.c1 in ['<poor loop+>', '<checkif loop+>']:
+                                        self.loop_statement()
+                                    elif self.c1 == '<initialization statement+>':
+                                        self.initialization_statement()
+                                    elif self.c1 == '<pass>':
+                                        pass
+                                    elif self.c1 == '<continue>':
+                                        continue
+                                    elif self.c1 == '<break>':
                                         while self.c1 != '<loop body->':
                                             self.next()
                                         break
-                                elif self.c1 in ['<poor loop+>', '<checkif loop+>']:
-                                    self.loop_statement()
-                                elif self.c1 == '<initialization statement+>':
-                                    self.initialization_statement()
-                                elif self.c1 == '<pass>':
-                                    pass
-                                elif self.c1 == '<continue>':
-                                    continue
-                                elif self.c1 == '<break>':
-                                    while self.c1 != '<loop body->':
-                                        self.next()
-                                    break
+                                    self.next()
                                 self.next()
-                            self.next()
-                        self.prev()
+                            self.prev()
+                        elif start > stop and step < 0:
+                            for _ in range(start, stop, step):
+                                if self.c1 == '<poor loop->':
+                                    break
+                                if _ < start:
+                                    id = {id1: self.GlobalVar[id1] + step}
+                                    self.GlobalVar.update(id)
+                                    self.GlobalDatatype.update({id1: "hint"})
+                                    self.position = startpos_loop
+                                    self.currentSequence = self.Sequence[self.position]
+                                    ckeys = list(self.currentSequence.keys())
+                                    cvalues = list(self.currentSequence.values())
+                                    self.c1 = ckeys[0]
+                                    self.c2 = cvalues[0]
+
+                                while self.c1 != '<poor loop->':
+                                    if self.c1 == '<output statement+>':
+                                        self.output_statement()
+                                    elif self.c1 == '<loop condition+>':
+                                        a = self.loop_condition()
+                                        if a == "__STOP__":
+                                            while self.c1 != '<loop body->':
+                                                self.next()
+                                            break
+                                    elif self.c1 in ['<poor loop+>', '<checkif loop+>']:
+                                        self.loop_statement()
+                                    elif self.c1 == '<initialization statement+>':
+                                        self.initialization_statement()
+                                    elif self.c1 == '<pass>':
+                                        pass
+                                    elif self.c1 == '<continue>':
+                                        continue
+                                    elif self.c1 == '<break>':
+                                        while self.c1 != '<loop body->':
+                                            self.next()
+                                        break
+                                    self.next()
+                                self.next()
+                            self.prev()
+                        else:
+                            self.Output.append(f"|||Semantic Error: in Poor Loop: Line {self.line_ctr(self.c2)}")
                     else:
                         self.Output.append(f"|||Semantic Error: in Poor Loop: Line {self.line_ctr(self.c2)}")
                 del self.GlobalVar[id1]
@@ -662,7 +722,6 @@ class Sem:
                         value = [item for item in value if item != '"\\n"']
                         value1 = "".join(value).replace("_", "-")
                         print(value1, datatype)
-
                 # check if id is array or not
                     if any('<index+>' in d for d in id_sequence):
                         idtype = "array"
@@ -676,7 +735,10 @@ class Sem:
                         for variable in variables:
                             value1 = value1.replace(variable, str(self.GlobalVar[variable]))
                         try:
-                            value1 = eval(value1, None, self.bully)
+                            if datatype == "hint" or datatype == "flute":
+                                value1 = eval(value1.replace("_", "-"), None, self.bully)
+                            else:
+                                value1 = eval(value1, None, self.bully)
                         except:
                             self.Output.append(f"|||Semantic Error: value \"{value1}\": Line {self.line_ctr(self.c2)}")
                         if type(value1) == list:
@@ -770,8 +832,13 @@ class Sem:
                     value = "".join(value1)
                 if '_' in value:
                     value = str(value.replace('_', '-'))
-                valuestr = self.replace_variables(value, self.GlobalVar)
-                value = eval(valuestr, None, self.bully)
+                try:
+                    valuestr = self.replace_variables(value, self.GlobalVar)
+                    value = eval(valuestr, None, self.bully)
+                except:
+                    value = "".join(value)
+                    valuestr = self.replace_variables(value, self.GlobalVar)
+                    value = eval(valuestr, None, self.bully)
                 if value == "True":
                     value = 'nocap'
                 elif value == "False":
@@ -824,6 +891,14 @@ class Sem:
                 else:
                     self.Output.append(f"|||Semantic Error: Data type mismatch \"{datatype} {declared_id} {operator} {str(value)}\": Line {self.line_ctr(self.c2)}")
             elif datatype in ["hint", "flute", "star"]:
+                if datatype == "hint":
+                    try:
+                        if value - int(value) != 0:
+                            pass
+                        else:
+                            value = int(value)
+                    except:
+                        pass
                 math_type = type(value)
                 if math_type == int == type(value) and datatype == "hint" or (
                         datatype == "hint" and valuetype == "hasid") or (valuetype == "array" and datatype == "hint"):
@@ -845,8 +920,9 @@ class Sem:
                     self.GlobalDatatype.update({declared_id: datatype})
                 else:
                     self.Output.append(f"|||Semantic Error: Data type mismatch \"{datatype} {declared_id} {operator} {str(value)}\": Line {self.line_ctr(self.c2)}")
-        except:
-             self.Output.append(f"|||Semantic Error: in declaration: Line {self.line_ctr(self.c2)}")
+        except Exception as e:
+            print(e)
+            self.Output.append(f"|||Semantic Error: in declaration: Line {self.line_ctr(self.c2)}")
 
     def function(self):
         try:
@@ -918,7 +994,6 @@ class Sem:
                         value.append(self.value[self.c2])
                         value = [item for item in value if item != '"\\n"']
                         value1 = "".join(value)
-
                 # check if id is array or not
                     if any('<index+>' in d for d in id_sequence):
                         idtype = "array"
@@ -1013,7 +1088,8 @@ class Sem:
                         if operator == "=":
                             self.GlobalVar[declared_id][array_length] = str(value)
                         elif operator == "+=":
-                            aa = str(value)
+                            # aa = str(value)
+                            aa = value
                             self.GlobalVar[declared_id][array_length] = self.GlobalVar[declared_id][array_length].replace("\"", "") + aa
                             self.GlobalVar[declared_id][array_length] = "\"" + self.GlobalVar[declared_id][array_length].replace("\"", "").replace("\n",
                                                                                                        "\\n") + "\""
@@ -1114,7 +1190,8 @@ class Sem:
                         if operator == "=":
                             self.GlobalVar[declared_id] = "\"" + str(value) + "\""
                         elif operator == "+=":
-                            aa = str(value)
+                            #aa = str(value)
+                            aa = value
                             self.GlobalVar[declared_id] = self.GlobalVar[declared_id].replace("\"", "") + aa
                             self.GlobalVar[declared_id] = "\"" + self.GlobalVar[declared_id].replace("\"", "\'").replace("\n", "\\n") + "\""
                             if self.GlobalVar[declared_id].count("\'") > 2 and '+' not in self.GlobalVar[declared_id] and '-' not in \
@@ -1145,6 +1222,7 @@ class Sem:
                     self.Output.append(
                         f"|||Semantic Error: Undeclared Variable in {declared_id} {operator} {value}: Line {self.line_ctr(self.c2)}")
         except:
+            print(value)
             self.Output.append(f"|||Semantic Error: in initialization: Line {self.line_ctr(self.c2)}")
 
     def function_call_statement(self):
@@ -1180,8 +1258,43 @@ class Sem:
 
                         if var in self.FunctionVarParam:  # declare the parameters in FunctionVarParam
                             if len(param) != len(self.FunctionVarParam[var]):
-                                self.Output.append(
-                                    f"|||Semantic Error: Length of parameter ({len(param)}) not equal to function ({len(self.FunctionVarParam[var])}) in line {self.line_ctr(self.c2)}")
+                                try:
+                                    checker = eval(",".join(param))
+                                    print(checker, "2@@")
+                                    self.Output.append(
+                                        f"|||Semantic Error: Length of parameter ({len(checker)}) not equal to function ({len(self.FunctionVarParam[var])}) in line {self.line_ctr(self.c2)}")
+                                except Exception as e:
+                                    a = str(e)
+                                    print(a, "@#")
+                                    b = a.replace('int', 'hint').replace('str', 'star').replace('float', 'flute')
+                                    error_list = ["unsupported operand type(s) for +: 'int' and 'str'",
+                                                  'can only concatenate str (not "int") to str',
+                                                  'can only concatenate str (not "float") to str',
+                                                  "unsupported operand type(s) for +: 'float' and 'str'",
+                                                  "'<' not supported between instances of 'int' and 'str'",
+                                                  "'<' not supported between instances of 'float' and 'str'",
+                                                  "'>=' not supported between instances of 'int' and 'str'",
+                                                  "'>=' not supported between instances of 'float' and 'str'",
+                                                  "'<=' not supported between instances of 'int' and 'str'",
+                                                  "'<=' not supported between instances of 'float' and 'str'",
+                                                  "'>' not supported between instances of 'int' and 'str'",
+                                                  "'>' not supported between instances of 'float' and 'str'"]
+
+                                    if a in error_list:
+                                        self.Output.append(f"|||Semantic Error: {b}: Line {self.line_ctr(self.c22)}")
+                                    elif "unexpected EOF while parsing" in a:
+                                        self.Output.append(
+                                            f"|||Semantic Error: star cannot be operated with other data types: Line {self.line_ctr(self.c2)}")
+                                    elif "invalid syntax (<string>" in a:
+                                        self.Output.append(
+                                            f"|||Semantic Error: Invalid expression: Line {self.line_ctr(self.c22)}")
+                                    elif "has no len()" in a:
+                                        self.Output.append(
+                                            f"|||Semantic Error: Length of parameter ({len(param)}) not equal to function ({len(self.FunctionVarParam[var])}) in line {self.line_ctr(self.c2)}")
+                                    else:
+                                        self.Output.append(
+                                            f"|||Semantic Error: Undeclared Variable : Line {self.line_ctr(self.c22)}")
+
                                 while self.c1 == '<allowed value->':
                                     self.next()
                                 break
@@ -1301,8 +1414,41 @@ class Sem:
                             self.next()
                         if var in self.FunctionVarParam: #declare the parameters in FunctionVarParam
                             if len(param) != len(self.FunctionVarParam[var]):
-                                self.Output.append(
-                                    f"|||Semantic Error: Length of parameter ({len(param)}) not equal to function ({len(self.FunctionVarParam[var])}) in line {self.line_ctr(self.c2)}")
+                                try:
+                                    checker = eval(",".join(param))
+                                    print(checker, "1@@")
+                                    self.Output.append(
+                                        f"|||Semantic Error: Length of parameter ({len(checker)}) not equal to function ({len(self.FunctionVarParam[var])}) in line {self.line_ctr(self.c2)}")
+                                except Exception as e:
+                                    a = str(e)
+                                    print(a,"@#")
+                                    b = a.replace('int', 'hint').replace('str', 'star').replace('float', 'flute')
+                                    error_list = ["unsupported operand type(s) for +: 'int' and 'str'",
+                                                  'can only concatenate str (not "int") to str',
+                                                  'can only concatenate str (not "float") to str',
+                                                  "unsupported operand type(s) for +: 'float' and 'str'",
+                                                  "'<' not supported between instances of 'int' and 'str'",
+                                                  "'<' not supported between instances of 'float' and 'str'",
+                                                  "'>=' not supported between instances of 'int' and 'str'",
+                                                  "'>=' not supported between instances of 'float' and 'str'",
+                                                  "'<=' not supported between instances of 'int' and 'str'",
+                                                  "'<=' not supported between instances of 'float' and 'str'",
+                                                  "'>' not supported between instances of 'int' and 'str'",
+                                                  "'>' not supported between instances of 'float' and 'str'"]
+
+                                    if a in error_list:
+                                        self.Output.append(f"|||Semantic Error: {b}: Line {self.line_ctr(self.c22)}")
+                                    elif "unexpected EOF while parsing" in a:
+                                        self.Output.append(f"|||Semantic Error: star cannot be operated with other data types: Line {self.line_ctr(self.c2)}")
+                                    elif "invalid syntax (<string>" in a:
+                                        self.Output.append(
+                                            f"|||Semantic Error: Invalid expression: Line {self.line_ctr(self.c22)}")
+                                    elif "has no len()" in a:
+                                        self.Output.append(
+                                            f"|||Semantic Error: Length of parameter ({len(param)}) not equal to function ({len(self.FunctionVarParam[var])}) in line {self.line_ctr(self.c2)}")
+                                    else:
+                                        self.Output.append(
+                                            f"|||Semantic Error: Undeclared Variable : Line {self.line_ctr(self.c22)}")
                                 while self.c1 == '<allowed value->':
                                     self.next()
                                 break
@@ -1371,6 +1517,8 @@ class Sem:
                                 self.funcnext()
                             while self.c11 != '<function body->':
                                 self.funcnext()
+                        else:
+                            self.Output.append(f"|||Semantic Error: No function called : Line {self.line_ctr(self.c22)}")
                     if self.c1 == '<function call statement->':
                         break
                     if self.c1 == '\0':
@@ -1385,7 +1533,7 @@ class Sem:
                 self.c11 = '\0'
                 self.c22 = '\0'
         except:
-            self.Output.append(f"|||Semantic Error: in function call: Line {self.line_ctr(self.c2)}")
+            self.Output.append(f"|||Semantic Error: No function called: Line {self.line_ctr(self.c2)}")
 
     def funcnext(self):
         self.FuncPosition += 1
@@ -1451,7 +1599,10 @@ class Sem:
             param_str = self.replace_variables(param_str, self.FuncVariable)  # replace the id in param_str with value
             param_str = param_str.replace("\n", "\\n")
             try:
-                param_tuple = eval(param_str, None, self.bully)  # Try to evaluate the param_str
+                try:
+                    param_tuple = eval(param_str, None, self.bully)  # Try to evaluate the param_str
+                except:
+                    param_tuple = eval("\""+ param_str + "\"", None, self.bully)  # Try to evaluate the param_str
             except Exception as e:
                 a = str(e)
                 b = a.replace('int', 'hint').replace('str', 'star').replace('float', 'flute')
@@ -1461,6 +1612,12 @@ class Sem:
                     self.Output.append(f"|||Semantic Error: {b}: Line {self.line_ctr(self.c22)}")
                 elif a == "unsupported operand type(s) for +: 'float' and 'str'":
                     self.Output.append(f"|||Semantic Error: {b}: Line {self.line_ctr(self.c22)}")
+                elif "unexpected EOF while parsing" in a:
+                    self.Output.append(
+                        f"|||Semantic Error: star cannot be operated with other data types: Line {self.line_ctr(self.c22)}")
+                elif "invalid syntax (<string>" in a:
+                    self.Output.append(
+                        f"|||Semantic Error: Invalid expression: Line {self.line_ctr(self.c22)}")
 
             if isinstance(param_tuple, tuple):  # Check if param_tuple is a single item
                 param_str = "".join(str(item) for item in param_tuple)
@@ -1537,7 +1694,10 @@ class Sem:
                         for variable in variables:
                             value1 = value1.replace(variable, str(self.FuncVariable[variable]))
                         try:
-                            value1 = eval(value1, None, self.bully)
+                            if datatype == "hint" or datatype == "flute":
+                                value1 = eval(value1.replace("_", "-"), None, self.bully)
+                            else:
+                                value1 = eval(value1, None, self.bully)
                         except:
                             self.Output.append(f"|||Semantic Error: value \"{value1}\": Line {self.line_ctr(self.c22)}")
                         if type(value1) == list:
@@ -1631,8 +1791,13 @@ class Sem:
                     value = "".join(value1)
                 if '_' in value:
                     value = str(value.replace('_', '-'))
-                valuestr = self.replace_variables(value, self.FuncVariable)
-                value = eval(valuestr, None, self.bully)
+                try:
+                    valuestr = self.replace_variables(value, self.FuncVariable)
+                    value = eval(valuestr, None, self.bully)
+                except:
+                    value = "".join(value)
+                    valuestr = self.replace_variables(value, self.FuncVariable)
+                    value = eval(valuestr, None, self.bully)
                 if value == "True":
                     value = 'nocap'
                 elif value == "False":
@@ -1685,6 +1850,14 @@ class Sem:
                 else:
                     self.Output.append(f"|||Semantic Error: Data type mismatch \"{datatype} {declared_id} {operator} {str(value)}\": Line {self.line_ctr(self.c22)}")
             elif datatype in ["hint", "flute", "star"]:
+                if datatype == "hint":
+                    try:
+                        if value - int(value) != 0:
+                            pass
+                        else:
+                            value = int(value)
+                    except:
+                        pass
                 math_type = type(value)
                 if math_type == int == type(value) and datatype == "hint" or (
                         datatype == "hint" and valuetype == "hasid") or (valuetype == "array" and datatype == "hint"):
@@ -1855,7 +2028,8 @@ class Sem:
                         if operator == "=":
                             self.FuncVariable[declared_id][array_length] = str(value)
                         elif operator == "+=":
-                            aa = str(value)
+                            # aa = str(value)
+                            aa = value
                             self.FuncVariable[declared_id][array_length] = self.FuncVariable[declared_id][
                                                                             array_length].replace("\"", "") + aa
                             self.FuncVariable[declared_id][array_length] = "\"" + self.FuncVariable[declared_id][
@@ -1962,7 +2136,8 @@ class Sem:
                         if operator == "=":
                             self.FuncVariable[declared_id] = "\"" + str(value) + "\""
                         elif operator == "+=":
-                            aa = str(value)
+                            # aa = str(value)
+                            aa = value
                             self.FuncVariable[declared_id] = self.FuncVariable[declared_id].replace("\"", "") + aa
                             self.FuncVariable[declared_id] = "\"" + self.FuncVariable[declared_id].replace("\"", "\'").replace("\n", "\\n") + "\""
                             if self.FuncVariable[declared_id].count("\'") > 2 and '+' not in self.FuncVariable[declared_id] and '-' not in \
@@ -2024,85 +2199,14 @@ class Sem:
                     self.Output.append(f"|||Semantic Error: range parameter \"range({h1})\": Line {self.line_ctr(self.c22)}")
 
                 if isinstance(result, int):  # Checking if the result is an integer
-                    for _ in range(result):
-                        if self.c11 == '<function poor loop->':
-                            break
-                        if _ > 0:  # it will go to startpos_loop after the 2nd iteration of the loop
-                            id = {id1: _}
-                            self.FuncVariable.update(id)
-                            self.FuncVariableDatatype.update({id1: "hint"})
-                            self.FuncPosition = startpos_loop
-                            self.CurrentFuncSequence = self.FuncSequence[self.FuncPosition]
-                            ckeys = list(self.CurrentFuncSequence.keys())
-                            cvalues = list(self.CurrentFuncSequence.values())
-                            self.c11 = ckeys[0]
-                            self.c22 = cvalues[0]
-
-                        while self.c11 != '<function poor loop->':  # execute the poor loop body
-                            if self.c11 == '<output statement+>':
-                                self.func_output()
-                            elif self.c11 == '<function loop condition+>':
-                                a = self.func_loop_condition()
-                                if a == "__STOP__":
-                                    while self.c11 != '<function loop body->':
-                                        self.funcnext()
-                                    break
-                                elif a != "None" and a != "__STOP__":
-                                    remit = a
-                                    while self.c11 != '<function loop body->':
-                                        self.funcnext()
-                                    break
-                            elif self.c11 in ['<function poor loop+>', '<function checkif loop+>']:
-                                a = self.func_loop()
-                                if a == "__STOP__":
-                                    while self.c11 != '<function loop body->':
-                                        self.funcnext()
-                                    break
-                                elif a != "None" and a != "__STOP__":
-                                    remit = a
-                                    while self.c11 != '<function loop body->':
-                                        self.funcnext()
-                                    break
-                            elif self.c11 == '<initialization statement+>':
-                                self.func_initialization()
-                            elif self.c11 == '<pass>':
-                                pass
-                            elif self.c11 == '<continue>':
-                                continue
-                            elif self.c11 == '<break>':
-                                while self.c11 != '<function loop body->':
-                                    self.funcnext()
-                                break
-                            elif self.c11 == '<function call+>':
-                                pass
-                            elif self.c11 == '<return+>':
-                                start_return = self.c22
-                                while self.c11 != '<return->':
-                                    self.funcnext()
-                                end_return = self.c22 + 1
-                                remit = "".join(self.value[start_return:end_return]).replace("remit", "").replace(
-                                    '"\\n"', '')
-                                variables = [key for key in self.FuncVariable.keys() if key in remit]
-                                for variable in variables:
-                                    remit = remit.replace(variable, str(self.FuncVariable[variable]))
-                                try:
-                                    remit = eval(remit, None, self.bully)
-                                except:
-                                    self.Output.append(
-                                        f"|||Semantic Error: expression in \"remit{remit}\": Line {self.line_ctr(self.c22)}")
-                                while self.c11 != '<function loop body->':
-                                    self.funcnext()
-                                break
+                    if result <= 0:
+                        while self.c11 != '<function poor loop->':
                             self.funcnext()
-                        self.funcnext()
-                    self.funcprev()
-                else:  # Checking the length of the result tuple
-                    if len(result) == 1:
-                        stop = result[0]
-                        for _ in range(stop):
+                    else:
+                        for _ in range(result):
                             if self.c11 == '<function poor loop->':
                                 break
-                            if _ > 0:
+                            if _ > 0:  # it will go to startpos_loop after the 2nd iteration of the loop
                                 id = {id1: _}
                                 self.FuncVariable.update(id)
                                 self.FuncVariableDatatype.update({id1: "hint"})
@@ -2171,158 +2275,319 @@ class Sem:
                                 self.funcnext()
                             self.funcnext()
                         self.funcprev()
+                else:  # Checking the length of the result tuple
+                    if len(result) == 1:
+                        stop = result[0]
+                        if stop <= 0:
+                            while self.c11 != '<function poor loop->':
+                                self.funcnext()
+                        else:
+                            for _ in range(stop):
+                                if self.c11 == '<function poor loop->':
+                                    break
+                                if _ > 0:
+                                    id = {id1: _}
+                                    self.FuncVariable.update(id)
+                                    self.FuncVariableDatatype.update({id1: "hint"})
+                                    self.FuncPosition = startpos_loop
+                                    self.CurrentFuncSequence = self.FuncSequence[self.FuncPosition]
+                                    ckeys = list(self.CurrentFuncSequence.keys())
+                                    cvalues = list(self.CurrentFuncSequence.values())
+                                    self.c11 = ckeys[0]
+                                    self.c22 = cvalues[0]
+
+                                while self.c11 != '<function poor loop->':  # execute the poor loop body
+                                    if self.c11 == '<output statement+>':
+                                        self.func_output()
+                                    elif self.c11 == '<function loop condition+>':
+                                        a = self.func_loop_condition()
+                                        if a == "__STOP__":
+                                            while self.c11 != '<function loop body->':
+                                                self.funcnext()
+                                            break
+                                        elif a != "None" and a != "__STOP__":
+                                            remit = a
+                                            while self.c11 != '<function loop body->':
+                                                self.funcnext()
+                                            break
+                                    elif self.c11 in ['<function poor loop+>', '<function checkif loop+>']:
+                                        a = self.func_loop()
+                                        if a == "__STOP__":
+                                            while self.c11 != '<function loop body->':
+                                                self.funcnext()
+                                            break
+                                        elif a != "None" and a != "__STOP__":
+                                            remit = a
+                                            while self.c11 != '<function loop body->':
+                                                self.funcnext()
+                                            break
+                                    elif self.c11 == '<initialization statement+>':
+                                        self.func_initialization()
+                                    elif self.c11 == '<pass>':
+                                        pass
+                                    elif self.c11 == '<continue>':
+                                        continue
+                                    elif self.c11 == '<break>':
+                                        while self.c11 != '<function loop body->':
+                                            self.funcnext()
+                                        break
+                                    elif self.c11 == '<function call+>':
+                                        pass
+                                    elif self.c11 == '<return+>':
+                                        start_return = self.c22
+                                        while self.c11 != '<return->':
+                                            self.funcnext()
+                                        end_return = self.c22 + 1
+                                        remit = "".join(self.value[start_return:end_return]).replace("remit", "").replace(
+                                            '"\\n"', '')
+                                        variables = [key for key in self.FuncVariable.keys() if key in remit]
+                                        for variable in variables:
+                                            remit = remit.replace(variable, str(self.FuncVariable[variable]))
+                                        try:
+                                            remit = eval(remit, None, self.bully)
+                                        except:
+                                            self.Output.append(
+                                                f"|||Semantic Error: expression in \"remit{remit}\": Line {self.line_ctr(self.c22)}")
+                                        while self.c11 != '<function loop body->':
+                                            self.funcnext()
+                                        break
+                                    self.funcnext()
+                                self.funcnext()
+                            self.funcprev()
                     elif len(result) == 2:
                         start, stop = result
                         self.FuncVariable[id1] = start
-                        for _ in range(start, stop):
-                            if self.c1 == '<poor loop->':
-                                break
-                            if _ > start:
-                                id = {id1: self.FuncVariable[id1] + 1}
-                                self.FuncVariable.update(id)
-                                self.FuncVariableDatatype.update({id1: "hint"})
-                                self.FuncPosition = startpos_loop
-                                self.CurrentFuncSequence = self.FuncSequence[self.FuncPosition]
-                                ckeys = list(self.CurrentFuncSequence.keys())
-                                cvalues = list(self.CurrentFuncSequence.values())
-                                self.c11 = ckeys[0]
-                                self.c22 = cvalues[0]
-
-                            while self.c11 != '<function poor loop->':  # execute the poor loop body
-                                if self.c11 == '<output statement+>':
-                                    self.func_output()
-                                elif self.c11 == '<function loop condition+>':
-                                    a = self.func_loop_condition()
-                                    if a == "__STOP__":
-                                        while self.c11 != '<function loop body->':
-                                            self.funcnext()
-                                        break
-                                    elif a != "None" and a != "__STOP__":
-                                        remit = a
-                                        while self.c11 != '<function loop body->':
-                                            self.funcnext()
-                                        break
-                                elif self.c11 in ['<function poor loop+>', '<function checkif loop+>']:
-                                    a = self.func_loop()
-                                    if a == "__STOP__":
-                                        while self.c11 != '<function loop body->':
-                                            self.funcnext()
-                                        break
-                                    elif a != "None" and a != "__STOP__":
-                                        remit = a
-                                        while self.c11 != '<function loop body->':
-                                            self.funcnext()
-                                        break
-                                elif self.c11 == '<initialization statement+>':
-                                    self.func_initialization()
-                                elif self.c11 == '<pass>':
-                                    pass
-                                elif self.c11 == '<continue>':
-                                    continue
-                                elif self.c11 == '<break>':
-                                    while self.c11 != '<function loop body->':
-                                        self.funcnext()
-                                    break
-                                elif self.c11 == '<function call+>':
-                                    pass
-                                elif self.c11 == '<return+>':
-                                    start_return = self.c22
-                                    while self.c11 != '<return->':
-                                        self.funcnext()
-                                    end_return = self.c22 + 1
-                                    remit = "".join(self.value[start_return:end_return]).replace("remit", "").replace(
-                                        '"\\n"', '')
-                                    variables = [key for key in self.FuncVariable.keys() if key in remit]
-                                    for variable in variables:
-                                        remit = remit.replace(variable, str(self.FuncVariable[variable]))
-                                    try:
-                                        remit = eval(remit, None, self.bully)
-                                    except:
-                                        self.Output.append(
-                                            f"|||Semantic Error: expression in \"remit{remit}\": Line {self.line_ctr(self.c22)}")
-                                    while self.c11 != '<function loop body->':
-                                        self.funcnext()
-                                    break
+                        if start >= stop:
+                            while self.c11 != '<function poor loop->':
                                 self.funcnext()
-                            self.funcnext()
-                        self.funcprev()
+                        else:
+                            for _ in range(start, stop):
+                                if self.c11 == '<function poor loop->':
+                                    break
+                                if _ > start:
+                                    id = {id1: self.FuncVariable[id1] + 1}
+                                    self.FuncVariable.update(id)
+                                    self.FuncVariableDatatype.update({id1: "hint"})
+                                    self.FuncPosition = startpos_loop
+                                    self.CurrentFuncSequence = self.FuncSequence[self.FuncPosition]
+                                    ckeys = list(self.CurrentFuncSequence.keys())
+                                    cvalues = list(self.CurrentFuncSequence.values())
+                                    self.c11 = ckeys[0]
+                                    self.c22 = cvalues[0]
+
+                                while self.c11 != '<function poor loop->':  # execute the poor loop body
+                                    if self.c11 == '<output statement+>':
+                                        self.func_output()
+                                    elif self.c11 == '<function loop condition+>':
+                                        a = self.func_loop_condition()
+                                        if a == "__STOP__":
+                                            while self.c11 != '<function loop body->':
+                                                self.funcnext()
+                                            break
+                                        elif a != "None" and a != "__STOP__":
+                                            remit = a
+                                            while self.c11 != '<function loop body->':
+                                                self.funcnext()
+                                            break
+                                    elif self.c11 in ['<function poor loop+>', '<function checkif loop+>']:
+                                        a = self.func_loop()
+                                        if a == "__STOP__":
+                                            while self.c11 != '<function loop body->':
+                                                self.funcnext()
+                                            break
+                                        elif a != "None" and a != "__STOP__":
+                                            remit = a
+                                            while self.c11 != '<function loop body->':
+                                                self.funcnext()
+                                            break
+                                    elif self.c11 == '<initialization statement+>':
+                                        self.func_initialization()
+                                    elif self.c11 == '<pass>':
+                                        pass
+                                    elif self.c11 == '<continue>':
+                                        continue
+                                    elif self.c11 == '<break>':
+                                        while self.c11 != '<function loop body->':
+                                            self.funcnext()
+                                        break
+                                    elif self.c11 == '<function call+>':
+                                        pass
+                                    elif self.c11 == '<return+>':
+                                        start_return = self.c22
+                                        while self.c11 != '<return->':
+                                            self.funcnext()
+                                        end_return = self.c22 + 1
+                                        remit = "".join(self.value[start_return:end_return]).replace("remit", "").replace(
+                                            '"\\n"', '')
+                                        variables = [key for key in self.FuncVariable.keys() if key in remit]
+                                        for variable in variables:
+                                            remit = remit.replace(variable, str(self.FuncVariable[variable]))
+                                        try:
+                                            remit = eval(remit, None, self.bully)
+                                        except:
+                                            self.Output.append(
+                                                f"|||Semantic Error: expression in \"remit{remit}\": Line {self.line_ctr(self.c22)}")
+                                        while self.c11 != '<function loop body->':
+                                            self.funcnext()
+                                        break
+                                    self.funcnext()
+                                self.funcnext()
+                            self.funcprev()
                     elif len(result) == 3:
                         start, stop, step = result
                         self.FuncVariable[id1] = start
-                        print(self.FuncVariable[id1], 232323)
-                        for _ in range(start, stop, step):
-                            if self.c1 == '<poor loop->':
-                                break
-                            print(_, self.FuncVariable[id1])
-                            if _ > start:
-                                id = {id1: self.FuncVariable[id1] + step}
-                                self.FuncVariable.update(id)
-                                self.FuncVariableDatatype.update({id1: "hint"})
-                                self.FuncPosition = startpos_loop
-                                self.CurrentFuncSequence = self.FuncSequence[self.FuncPosition]
-                                ckeys = list(self.CurrentFuncSequence.keys())
-                                cvalues = list(self.CurrentFuncSequence.values())
-                                self.c11 = ckeys[0]
-                                self.c22 = cvalues[0]
+                        if step == 0:
+                            self.Output.append(f"|||Semantic Error: Increment should not be {step}: Line {self.line_ctr(self.c22)}")
+                        elif start < stop and step > 0:
+                            for _ in range(start, stop, step):
+                                if self.c11 == '<function poor loop->':
+                                    break
+                                print(_, self.FuncVariable[id1])
+                                if _ > start:
+                                    id = {id1: self.FuncVariable[id1] + step}
+                                    self.FuncVariable.update(id)
+                                    self.FuncVariableDatatype.update({id1: "hint"})
+                                    self.FuncPosition = startpos_loop
+                                    self.CurrentFuncSequence = self.FuncSequence[self.FuncPosition]
+                                    ckeys = list(self.CurrentFuncSequence.keys())
+                                    cvalues = list(self.CurrentFuncSequence.values())
+                                    self.c11 = ckeys[0]
+                                    self.c22 = cvalues[0]
 
-                            while self.c11 != '<function poor loop->':  # execute the poor loop body
-                                if self.c11 == '<output statement+>':
-                                    self.func_output()
-                                elif self.c11 == '<function loop condition+>':
-                                    a = self.func_loop_condition()
-                                    if a == "__STOP__":
+                                while self.c11 != '<function poor loop->':  # execute the poor loop body
+                                    if self.c11 == '<output statement+>':
+                                        self.func_output()
+                                    elif self.c11 == '<function loop condition+>':
+                                        a = self.func_loop_condition()
+                                        if a == "__STOP__":
+                                            while self.c11 != '<function loop body->':
+                                                self.funcnext()
+                                            break
+                                        elif a != "None" and a != "__STOP__":
+                                            remit = a
+                                            while self.c11 != '<function loop body->':
+                                                self.funcnext()
+                                            break
+                                    elif self.c11 in ['<function poor loop+>', '<function checkif loop+>']:
+                                        a = self.func_loop()
+                                        if a == "__STOP__":
+                                            while self.c11 != '<function loop body->':
+                                                self.funcnext()
+                                            break
+                                        elif a != "None" and a != "__STOP__":
+                                            remit = a
+                                            while self.c11 != '<function loop body->':
+                                                self.funcnext()
+                                            break
+                                    elif self.c11 == '<initialization statement+>':
+                                        self.func_initialization()
+                                    elif self.c11 == '<pass>':
+                                        pass
+                                    elif self.c11 == '<continue>':
+                                        continue
+                                    elif self.c11 == '<break>':
                                         while self.c11 != '<function loop body->':
                                             self.funcnext()
                                         break
-                                    elif a != "None" and a != "__STOP__":
-                                        remit = a
+                                    elif self.c11 == '<function call+>':
+                                        pass
+                                    elif self.c11 == '<return+>':
+                                        start_return = self.c22
+                                        while self.c11 != '<return->':
+                                            self.funcnext()
+                                        end_return = self.c22 + 1
+                                        remit = "".join(self.value[start_return:end_return]).replace("remit", "").replace(
+                                            '"\\n"', '')
+                                        variables = [key for key in self.FuncVariable.keys() if key in remit]
+                                        for variable in variables:
+                                            remit = remit.replace(variable, str(self.FuncVariable[variable]))
+                                        try:
+                                            remit = eval(remit, None, self.bully)
+                                        except:
+                                            self.Output.append(
+                                                f"|||Semantic Error: expression in \"remit{remit}\": Line {self.line_ctr(self.c22)}")
                                         while self.c11 != '<function loop body->':
                                             self.funcnext()
                                         break
-                                elif self.c11 in ['<function poor loop+>', '<function checkif loop+>']:
-                                    a = self.func_loop()
-                                    if a == "__STOP__":
-                                        while self.c11 != '<function loop body->':
-                                            self.funcnext()
-                                        break
-                                    elif a != "None" and a != "__STOP__":
-                                        remit = a
-                                        while self.c11 != '<function loop body->':
-                                            self.funcnext()
-                                        break
-                                elif self.c11 == '<initialization statement+>':
-                                    self.func_initialization()
-                                elif self.c11 == '<pass>':
-                                    pass
-                                elif self.c11 == '<continue>':
-                                    continue
-                                elif self.c11 == '<break>':
-                                    while self.c11 != '<function loop body->':
-                                        self.funcnext()
-                                    break
-                                elif self.c11 == '<function call+>':
-                                    pass
-                                elif self.c11 == '<return+>':
-                                    start_return = self.c22
-                                    while self.c11 != '<return->':
-                                        self.funcnext()
-                                    end_return = self.c22 + 1
-                                    remit = "".join(self.value[start_return:end_return]).replace("remit", "").replace(
-                                        '"\\n"', '')
-                                    variables = [key for key in self.FuncVariable.keys() if key in remit]
-                                    for variable in variables:
-                                        remit = remit.replace(variable, str(self.FuncVariable[variable]))
-                                    try:
-                                        remit = eval(remit, None, self.bully)
-                                    except:
-                                        self.Output.append(
-                                            f"|||Semantic Error: expression in \"remit{remit}\": Line {self.line_ctr(self.c22)}")
-                                    while self.c11 != '<function loop body->':
-                                        self.funcnext()
-                                    break
+                                    self.funcnext()
                                 self.funcnext()
-                            self.funcnext()
-                        self.funcprev()
+                            self.funcprev()
+                        elif start > stop and step < 0:
+                            for _ in range(start, stop, step):
+                                if self.c11 == '<function poor loop->':
+                                    break
+                                print(_, self.FuncVariable[id1])
+                                if _ < start:
+                                    id = {id1: self.FuncVariable[id1] + step}
+                                    self.FuncVariable.update(id)
+                                    self.FuncVariableDatatype.update({id1: "hint"})
+                                    self.FuncPosition = startpos_loop
+                                    self.CurrentFuncSequence = self.FuncSequence[self.FuncPosition]
+                                    ckeys = list(self.CurrentFuncSequence.keys())
+                                    cvalues = list(self.CurrentFuncSequence.values())
+                                    self.c11 = ckeys[0]
+                                    self.c22 = cvalues[0]
+
+                                while self.c11 != '<function poor loop->':  # execute the poor loop body
+                                    if self.c11 == '<output statement+>':
+                                        self.func_output()
+                                    elif self.c11 == '<function loop condition+>':
+                                        a = self.func_loop_condition()
+                                        if a == "__STOP__":
+                                            while self.c11 != '<function loop body->':
+                                                self.funcnext()
+                                            break
+                                        elif a != "None" and a != "__STOP__":
+                                            remit = a
+                                            while self.c11 != '<function loop body->':
+                                                self.funcnext()
+                                            break
+                                    elif self.c11 in ['<function poor loop+>', '<function checkif loop+>']:
+                                        a = self.func_loop()
+                                        if a == "__STOP__":
+                                            while self.c11 != '<function loop body->':
+                                                self.funcnext()
+                                            break
+                                        elif a != "None" and a != "__STOP__":
+                                            remit = a
+                                            while self.c11 != '<function loop body->':
+                                                self.funcnext()
+                                            break
+                                    elif self.c11 == '<initialization statement+>':
+                                        self.func_initialization()
+                                    elif self.c11 == '<pass>':
+                                        pass
+                                    elif self.c11 == '<continue>':
+                                        continue
+                                    elif self.c11 == '<break>':
+                                        while self.c11 != '<function loop body->':
+                                            self.funcnext()
+                                        break
+                                    elif self.c11 == '<function call+>':
+                                        pass
+                                    elif self.c11 == '<return+>':
+                                        start_return = self.c22
+                                        while self.c11 != '<return->':
+                                            self.funcnext()
+                                        end_return = self.c22 + 1
+                                        remit = "".join(self.value[start_return:end_return]).replace("remit", "").replace(
+                                            '"\\n"', '')
+                                        variables = [key for key in self.FuncVariable.keys() if key in remit]
+                                        for variable in variables:
+                                            remit = remit.replace(variable, str(self.FuncVariable[variable]))
+                                        try:
+                                            remit = eval(remit, None, self.bully)
+                                        except:
+                                            self.Output.append(
+                                                f"|||Semantic Error: expression in \"remit{remit}\": Line {self.line_ctr(self.c22)}")
+                                        while self.c11 != '<function loop body->':
+                                            self.funcnext()
+                                        break
+                                    self.funcnext()
+                                self.funcnext()
+                            self.funcprev()
+                        else:
+                            self.Output.append(f"|||Semantic Error: in Poor Loop: Line {self.line_ctr(self.c22)}")
                     else:
                         self.Output.append(f"|||Semantic Error: in Poor Loop: Line {self.line_ctr(self.c22)}")
                 del self.FuncVariable[id1]
@@ -2697,6 +2962,9 @@ class Sem:
 
                 if a in error_list:
                     self.Output.append(f"|||Semantic Error: {b}: Line {self.line_ctr(self.c22)}")
+                elif "unexpected EOF while parsing" in a:
+                    self.Output.append(
+                        f"|||Semantic Error: star cannot be operated with other data types: Line {self.line_ctr(self.c22)}")
                 else:
                     self.Output.append(
                         f"|||Semantic Error: Undeclared Variable in {cond_exp}: Line {self.line_ctr(self.c22)}")

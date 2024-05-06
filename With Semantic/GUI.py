@@ -64,19 +64,19 @@ def lexemesAndTokens():
                                      highlightcolor="#51642A")
     scrollbarLexemeToken.pack(side=RIGHT, fill=Y)
 
-    lexeme = CTkTextbox(lexemeAndTokensFrame, width=198.0, height=790.0, font=("Courier New", 15, "bold"), text_color="Black",
+    lexeme = CTkTextbox(lexemeAndTokensFrame, width=198.0, height=740.0, font=("Courier New", 15, "bold"), text_color="Black",
                         fg_color="#D8B57E", border_width=1, border_color="Black", yscrollcommand=scrollbarLexemeToken.set, activate_scrollbars=False)
     lexeme.pack(side=LEFT, fill=Y)
 
-    lexemeToken = CTkTextbox(lexemeAndTokensFrame, width=190.0, height=790.0, font=("Courier New", 15, "bold"), text_color="Black",
+    lexemeToken = CTkTextbox(lexemeAndTokensFrame, width=182.0, height=740.0, font=("Courier New", 15, "bold"), text_color="Black",
                              fg_color="#D8B57E", border_width=1, border_color="Black", yscrollcommand=scrollbarLexemeToken.set, activate_scrollbars=False)
     lexemeToken.pack(side=LEFT, fill=BOTH)
 
 
 
-    errorTextBox = CTkTextbox(root, width=923.0, height=210.0, font=("Courier New", 15, "bold"), text_color="Black",
+    errorTextBox = CTkTextbox(root, width=923.0, height=190.0, font=("Courier New", 15, "bold"), text_color="Black",
                             fg_color="#D8B57E", border_width=1, border_color="Black")
-    errorTextBox.place(x=20, y=700)
+    errorTextBox.place(x=20, y=670)
     scrollbarLexemeToken.config(command=syncScrollLexemeAndTokens, bg="#51642A")
 
 
@@ -144,7 +144,7 @@ def enteringErrors():
 
     scrollbarError = Scrollbar(root, command=errorTextBox.yview, width=20, bg="gray", troughcolor="#51642A",
                                activebackground="#51642A", highlightcolor="#51642A")
-    scrollbarError.place(x=953, y=700, height=210)
+    scrollbarError.place(x=930, y=670, height=190)
 
     errorTextBox.configure(yscrollcommand=scrollbarError.set)
 
@@ -253,7 +253,7 @@ def mainScreen():
 
     root = CTk()
     w = 1400
-    h = 950
+    h = 900
     root.resizable(False, False)
     x, y = centerLoginReg(w, h)
     root.geometry('%dx%d+%d+%d' % (w, h, x , y ))
@@ -267,7 +267,7 @@ def mainScreen():
 
     path = "imagesUsed/background.png"
     bgImage = CTkImage(light_image=PIL.Image.open(path),
-                            size=(1400, 950))
+                            size=(1400, 1000))
     image_label = CTkLabel(root, image=bgImage, text="")
     image_label.pack()
 
@@ -285,18 +285,18 @@ def mainScreen():
                           font=("Courier new", 16, "bold"),
                           border_width=1,
                           border_color="Black")
-    errorTitle.place(x=32, y=650)
+    errorTitle.place(x=32, y=625)
     errorTitle.insert(END, " Output")
 
     codeTitle = CTkTextbox(root,fg_color="#51642A",
-                          width=78,
+                          width=100,
                           height=33,
                           text_color="white",
                           font=("Courier new", 16, "bold"),
                           border_width=1,
                           border_color="Black")
     codeTitle.place(x=32, y=120)
-    codeTitle.insert(END, " Code:")
+    codeTitle.insert(END, "  Code:  ")
     codeTitle.configure(state="disabled")
 
 

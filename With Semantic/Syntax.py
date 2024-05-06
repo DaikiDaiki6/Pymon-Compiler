@@ -2031,7 +2031,7 @@ class Syn:
         if self.currentkeys == '"NEWLINE"':
             print("SYNTAX ERROR 87: Unexpected", self.currentvalues, self.lineCounter)
             self.SyntaxErrors.append(
-                f'LINE #{self.lineCounter} : Unexpected ⏵ "{self.currentvalues}" \n\nExpected ⏵ "|"')  # put error in a list for viewing in GUI
+                f'LINE #{self.lineCounter} : Unexpected ⏵ "{self.currentvalues}" \n\nExpected ⏵ "|"')  # put error in a list for viewing in GUI #
         if self.currentkeys == '|':
             terminator += 1
         self.TProg_start()
