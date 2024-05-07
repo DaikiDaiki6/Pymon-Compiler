@@ -231,7 +231,7 @@ def semanticAnalyzer(Terminals, Sequence):
     errorfound = 0
     for item in output:
         try:
-            if '|||Semantic Error' in item:
+            if '|||Semantic Error' in item or '|||Runtime Error' in item:
                 output = [item.replace("|||", "")]
                 errorfound = 1
                 break

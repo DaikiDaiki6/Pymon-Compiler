@@ -682,6 +682,7 @@ class Sem:
             datatype = ""
             declared_id = ""
             idtype = "not array"
+            inputctr = 0
             # getting all the structure of declaration : <declaration> <id> <operator> <allowed value>
             while self.c1 != '<declaration->':
                 if self.c1 == '<data type>' and ctr < 2: # hint `a = 2
@@ -797,6 +798,7 @@ class Sem:
 
             # evaluating the value gathered
             if valuetype == "input": # hint `a = pin(....)
+                inputctr = 1
                 value = "".join(value).replace('"\\n"', '')
                 desc_display = value[4:-1]#.replace("pin", "")
                 variables = [key for key in self.GlobalVar.keys() if key in desc_display]
@@ -809,7 +811,7 @@ class Sem:
                 try:
                     value = eval(GUI.inputter(desc_display), None, self.bully)
                 except:
-                    self.Output.append(f"|||Semantic Error: user input: Line {self.line_ctr(self.c2)}")
+                    self.Output.append(f"|||Runtime Error: user input: Line {self.line_ctr(self.c2)}")
                 valuetype = datatype
                 self.Output.append(f"{desc_display} {value} \n")
 
@@ -866,7 +868,11 @@ class Sem:
 
             # matching the datatype to value if not error.
             if datatype == "car":
-                if valuetype == datatype or valuetype == "hasid":
+                if ((valuetype == datatype or valuetype == "hasid") and (repr(value).count("'") == 2 and (len(repr(value)) == 3 or len(repr(value)) == 2))) or inputctr == 1:
+                    if inputctr == 1 and len(str(value)) != 1:
+                        print("X",inputctr == 1 ,"X",value != 1, value)
+                        self.Output.append(
+                            f"|||Runtime Error: Data type mismatch \"{datatype} {declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c2)}")
                     self.GlobalVar.update({declared_id: f"\"{value}\""})
                     self.GlobalDatatype.update({declared_id: "car"})
                 elif valuetype == "array":
@@ -884,20 +890,30 @@ class Sem:
                     value = 'nocap'
                 elif value == "False":
                     value = 'cap'
-                if valuetype == datatype or valuetype == "hasid" or valuetype == "array":
+                if (valuetype == datatype or valuetype == "hasid") and value in ['cap', 'nocap']:
+                    self.GlobalVar.update({declared_id: value})
+                    self.GlobalDatatype.update({declared_id: "bully"})
+                elif (valuetype == datatype or valuetype == "array"):
                     self.GlobalVar.update({declared_id: value})
                     self.GlobalDatatype.update({declared_id: "bully"})
                 elif datatype != "" and operator == "" and value == []:
                     self.GlobalVar.update({declared_id: ""})
                     self.GlobalDatatype.update({declared_id: "bully"})
                 else:
-                    self.Output.append(f"|||Semantic Error: Data type mismatch \"{datatype} {declared_id} {operator} {str(value).replace('True','nocap').replace('False','cap')}\": Line {self.line_ctr(self.c2)}")
+                    if inputctr == 1:
+                        self.Output.append(f"|||Runtime Error: Data type mismatch \"{datatype} {declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c2)}")
+                    else:
+                        self.Output.append(f"|||Semantic Error: Data type mismatch \"{datatype} {declared_id} {operator} {str(value).replace('True','nocap').replace('False','cap')}\": Line {self.line_ctr(self.c2)}")
             elif datatype in ["hint", "flute", "star"]:
                 if datatype == "hint":
                     try:
                         if value - int(value) != 0:
-                            self.Output.append(
-                                f"|||Semantic Error: Data type mismatch \"{datatype} {declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c2)}")
+                            if inputctr == 1:
+                                self.Output.append(
+                                    f"|||Runtime Error: Data type mismatch \"{datatype} {declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c2)}")
+                            else:
+                                self.Output.append(
+                                    f"|||Semantic Error: Data type mismatch \"{datatype} {declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c2)}")
                         else:
                             value = int(value)
                     except:
@@ -922,7 +938,12 @@ class Sem:
                     self.GlobalVar.update({declared_id: value})
                     self.GlobalDatatype.update({declared_id: datatype})
                 else:
-                    self.Output.append(f"|||Semantic Error: Data type mismatch \"{datatype} {declared_id} {operator} {str(value).replace('True','nocap').replace('False','cap')}\": Line {self.line_ctr(self.c2)}")
+                    if inputctr == 1:
+                        self.Output.append(
+                            f"|||Runtime Error: Data type mismatch \"{datatype} {declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c2)}")
+                    else:
+                        self.Output.append(
+                            f"|||Semantic Error: Data type mismatch \"{datatype} {declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c2)}")
         except Exception as e:
             print(e)
             self.Output.append(f"|||Semantic Error: in declaration: Line {self.line_ctr(self.c2)}")
@@ -1025,7 +1046,7 @@ class Sem:
                     try:
                         value = eval(GUI.inputter(desc_display), None, self.bully)
                     except:
-                        self.Output.append(f"|||Semantic Error: user input: Line {self.line_ctr(self.c2)}")
+                        self.Output.append(f"|||Runtime Error: user input: Line {self.line_ctr(self.c2)}")
                     self.Output.append(f"{desc_display} {value} \n")
                 elif self.value[start] == self.value[end] and function_call != 1 and inputter != 1:
                     value = "".join(self.value[start])
@@ -1041,7 +1062,7 @@ class Sem:
                 elif str(value) == "False":
                     value = "cap"
                 if declared_id.count('[') == 2 and declared_id.count(']') == 2:
-                    self.Output.append(f"|||Array as index is not allowed: Line {self.line_ctr(self.c2)}")
+                    self.Output.append(f"|||Semantic Error: Array as index is not allowed: Line {self.line_ctr(self.c2)}")
                 else:
                     start_index = declared_id.find('[')
                     end_index = declared_id.find(']')
@@ -1056,9 +1077,13 @@ class Sem:
                 declared_id = declared_id.split('[')[0]
                 if declared_id in self.GlobalVar and declared_id in self.GlobalArray:
                     if self.GlobalDatatype[declared_id] == "flute":
-                        if value in ['nocap', 'cap']:
-                            self.Output.append(
-                                f"|||Semantic Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True','nocap').replace('False','cap')}\": Line {self.line_ctr(self.c2)}")
+                        if str(value).replace('True', 'nocap').replace('False', 'cap') in ['nocap', 'cap']:
+                            if inputter == 1:
+                                self.Output.append(
+                                    f"|||Runtime Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c2)}")
+                            else:
+                                self.Output.append(
+                                    f"|||Semantic Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c2)}")
                         elif operator == "=":
                             self.GlobalVar[declared_id][array_length] = float(value)
                         elif operator == "+=":
@@ -1072,9 +1097,13 @@ class Sem:
                         elif operator == "%=":
                             self.GlobalVar[declared_id][array_length] = self.GlobalVar[declared_id][array_length] % float(value)
                     elif self.GlobalDatatype[declared_id] == "hint":
-                        if value in ['nocap', 'cap']:
-                            self.Output.append(
-                                f"|||Semantic Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True','nocap').replace('False','cap')}\": Line {self.line_ctr(self.c2)}")
+                        if str(value).replace('True', 'nocap').replace('False', 'cap') in ['nocap', 'cap']:
+                            if inputter == 1:
+                                self.Output.append(
+                                    f"|||Runtime Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c2)}")
+                            else:
+                                self.Output.append(
+                                    f"|||Semantic Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c2)}")
                         elif operator == "=":
                             self.GlobalVar[declared_id][array_length] = int(value)
                         elif operator == "+=":
@@ -1105,16 +1134,24 @@ class Sem:
                     elif self.GlobalDatatype[declared_id] == "car":
                         if operator == "=":
                             if len(str(value)) != 1:
-                                self.Output.append(
-                                    f"|||Semantic Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True','nocap').replace('False','cap')}\": Line {self.line_ctr(self.c2)}")
+                                if inputter == 1:
+                                    self.Output.append(
+                                        f"|||Runtime Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c2)}")
+                                else:
+                                    self.Output.append(
+                                        f"|||Semantic Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c2)}")
                             self.GlobalVar[declared_id][array_length] =  str(value)
                         elif operator in ["+=", "-=", "*=", "/=", "%="]:
                             self.Output.append(
                                 f"|||Semantic Error: Operator not allowed in car values \"{declared_id} {operator} {str(value).replace('True','nocap').replace('False','cap')}\": Line {self.line_ctr(self.c2)}")
                     elif self.GlobalDatatype[declared_id] == "bully":
-                        if value not in ['nocap', 'cap']:
-                            self.Output.append(
-                                f"|||Semantic Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True','nocap').replace('False','cap')}\": Line {self.line_ctr(self.c2)}")
+                        if str(value).replace('True', 'nocap').replace('False', 'cap') not in ['nocap', 'cap']:
+                            if inputter == 1:
+                                self.Output.append(
+                                    f"|||Runtime Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c2)}")
+                            else:
+                                self.Output.append(
+                                    f"|||Semantic Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c2)}")
                         if operator == "=":
                             self.GlobalVar[declared_id][array_length] = value
                         elif operator in ["+=", "-=", "*=", "/=", "%="]:
@@ -1145,7 +1182,7 @@ class Sem:
                     try:
                         value = eval(GUI.inputter(desc_display), None, self.bully)
                     except:
-                        self.Output.append(f"|||Semantic Error: user input: Line {self.line_ctr(self.c2)}")
+                        self.Output.append(f"|||Runtime Error: user input: Line {self.line_ctr(self.c2)}")
                     self.Output.append(f"{desc_display} {value} \n")
                 elif self.value[start] == self.value[end] and function_call != 1 and inputter != 1:
                     value = "".join(self.value[start])
@@ -1158,9 +1195,13 @@ class Sem:
                 #changing value from the declaration
                 if declared_id in self.GlobalVar:
                     if self.GlobalDatatype[declared_id] == "flute":
-                        if value in ['nocap', 'cap']:
-                            self.Output.append(
-                                f"|||Semantic Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True','nocap').replace('False','cap')}\": Line {self.line_ctr(self.c2)}")
+                        if str(value).replace('True','nocap').replace('False','cap') in ['nocap', 'cap']:
+                            if inputter == 1:
+                                self.Output.append(
+                                    f"|||Runtime Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c2)}")
+                            else:
+                                self.Output.append(
+                                    f"|||Semantic Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c2)}")
                         elif operator == "=":
                             self.GlobalVar[declared_id] = float(value)
                         elif operator == "+=":
@@ -1174,9 +1215,13 @@ class Sem:
                         elif operator == "%=":
                             self.GlobalVar[declared_id] = self.GlobalVar[declared_id] % float(value)
                     elif self.GlobalDatatype[declared_id] == "hint":
-                        if value in ['nocap', 'cap']:
-                            self.Output.append(
-                                f"|||Semantic Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True','nocap').replace('False','cap')}\": Line {self.line_ctr(self.c2)}")
+                        if str(value).replace('True', 'nocap').replace('False', 'cap') in ['nocap', 'cap']:
+                            if inputter == 1:
+                                self.Output.append(
+                                    f"|||Runtime Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c2)}")
+                            else:
+                                self.Output.append(
+                                    f"|||Semantic Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c2)}")
                         elif operator == "=":
                             self.GlobalVar[declared_id] = int(value)
                         elif operator == "+=":
@@ -1206,16 +1251,24 @@ class Sem:
                     elif self.GlobalDatatype[declared_id] == "car":
                         if operator == "=":
                             if len(str(value)) != 1:
-                                self.Output.append(
-                                    f"|||Semantic Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True','nocap').replace('False','cap')}\": Line {self.line_ctr(self.c2)}")
+                                if inputter == 1:
+                                    self.Output.append(
+                                        f"|||Runtime Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c2)}")
+                                else:
+                                    self.Output.append(
+                                        f"|||Semantic Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c2)}")
                             self.GlobalVar[declared_id] = str(value)
                         elif operator in ["+=", "-=", "*=", "/=", "%="]:
                             self.Output.append(
                                 f"|||Semantic Error: Operator not allowed in car values \"{declared_id} {operator} {str(value).replace('True','nocap').replace('False','cap')}\": Line {self.line_ctr(self.c2)}")
                     elif self.GlobalDatatype[declared_id] == "bully":
-                        if value not in ['nocap', 'cap']:
-                            self.Output.append(
-                                f"|||Semantic Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True','nocap').replace('False','cap')}\": Line {self.line_ctr(self.c2)}")
+                        if str(value).replace('True', 'nocap').replace('False', 'cap') not in ['nocap', 'cap']:
+                            if inputter == 1:
+                                self.Output.append(
+                                    f"|||Runtime Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c2)}")
+                            else:
+                                self.Output.append(
+                                    f"|||Semantic Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c2)}")
                         if operator == "=":
                             self.GlobalVar[declared_id] = value
                         elif operator in ["+=", "-=", "*=", "/=", "%="]:
@@ -1641,7 +1694,7 @@ class Sem:
             datatype = ""
             declared_id = ""
             idtype = "not array"
-
+            inputctr = 0
             # getting all the structure of declaration : <declaration> <id> <operator> <allowed value>
             while self.c11 != '<declaration->':
                 if self.c11 == '<data type>' and ctr < 2:
@@ -1759,6 +1812,7 @@ class Sem:
 
             # evaluating the value gathered
             if valuetype == "input":  # hint `a = pin(....)
+                inputctr = 1
                 value = "".join(value).replace('"\\n"', '')
                 desc_display = value[4:-1]#.replace("pin", "")
                 variables = [key for key in self.FuncVariable.keys() if key in desc_display]
@@ -1828,7 +1882,11 @@ class Sem:
 
             # matching the datatype to value if not error.
             if datatype == "car":
-                if valuetype == datatype or valuetype == "hasid":
+                if ((valuetype == datatype or valuetype == "hasid") and (repr(value).count("'") == 2 and (
+                        len(repr(value)) == 3 or len(repr(value)) == 2))) or inputctr == 1:
+                    if inputctr == 1 and len(str(value)) != 1:
+                        self.Output.append(
+                            f"|||Runtime Error: Data type mismatch \"{datatype} {declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c22)}")
                     self.FuncVariable.update({declared_id: f"\"{value}\""})
                     self.FuncVariableDatatype.update({declared_id: "car"})
                 elif valuetype == "array":
@@ -1846,22 +1904,34 @@ class Sem:
                     value = 'nocap'
                 elif value == "False":
                     value = 'cap'
-                if valuetype == datatype or valuetype == "hasid" or valuetype == "array":
+                if (valuetype == datatype or valuetype == "hasid") and value in ['cap', 'nocap']:
+                    self.FuncVariable.update({declared_id: value})
+                    self.FuncVariableDatatype.update({declared_id: "bully"})
+                elif (valuetype == datatype or valuetype == "array"):
                     self.FuncVariable.update({declared_id: value})
                     self.FuncVariableDatatype.update({declared_id: "bully"})
                 elif datatype != "" and operator == "" and value == []:
                     self.FuncVariable.update({declared_id: ""})
                     self.FuncVariableDatatype.update({declared_id: "bully"})
                 else:
-                    self.Output.append(f"|||Semantic Error: Data type mismatch \"{datatype} {declared_id} {operator} {str(value).replace('True','nocap').replace('False','cap')}\": Line {self.line_ctr(self.c22)}")
+                    if inputctr == 1:
+                        self.Output.append(
+                            f"|||Runtime Error: Data type mismatch \"{datatype} {declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c22)}")
+                    else:
+                        self.Output.append(
+                            f"|||Semantic Error: Data type mismatch \"{datatype} {declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c22)}")
             elif datatype in ["hint", "flute", "star"]:
                 if datatype == "hint":
                     try:
                         if value - int(value) != 0:
-                            self.Output.append(
-                                f"|||Semantic Error: Data type mismatch \"{datatype} {declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c22)}")
+                            if inputctr == 1:
+                                self.Output.append(
+                                    f"|||Runtime Error: Data type mismatch \"{datatype} {declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c22)}")
+                            else:
+                                self.Output.append(
+                                    f"|||Semantic Error: Data type mismatch \"{datatype} {declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c22)}")
                         else:
-                            value = int(value)
+                                value = int(value)
                     except:
                         pass
                 math_type = type(value)
@@ -1884,7 +1954,12 @@ class Sem:
                     self.FuncVariable.update({declared_id: value})
                     self.FuncVariableDatatype.update({declared_id: datatype})
                 else:
-                    self.Output.append(f"|||Semantic Error: Data type mismatch \"{datatype} {declared_id} {operator} {str(value).replace('True','nocap').replace('False','cap')}\": Line {self.line_ctr(self.c22)}")
+                    if inputctr == 1:
+                        self.Output.append(
+                            f"|||Runtime Error: Data type mismatch \"{datatype} {declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c22)}")
+                    else:
+                        self.Output.append(
+                            f"|||Semantic Error: Data type mismatch \"{datatype} {declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c22)}")
         except:
             self.Output.append(f"|||Semantic Error in function declaration: Line {self.line_ctr(self.c22)}")
 
@@ -1962,7 +2037,7 @@ class Sem:
                     try:
                         value = eval(GUI.inputter(desc_display), None, self.bully)
                     except:
-                        self.Output.append(f"|||Semantic Error: user input: Line {self.line_ctr(self.c22)}")
+                        self.Output.append(f"|||Runtime Error: user input: Line {self.line_ctr(self.c22)}")
                     self.Output.append(f"{desc_display} {value} \n")
                 elif self.value[start] == self.value[end] and function_call != 1 and inputter != 1:
                     value = "".join(self.value[start])
@@ -1977,9 +2052,12 @@ class Sem:
                     value = "nocap"
                 elif str(value) == "False":
                     value = "cap"
-                start_index = declared_id.find('[')
-                end_index = declared_id.find(']')
-                array_length = declared_id[start_index + 1:end_index]
+                if declared_id.count('[') == 2 and declared_id.count(']') == 2:
+                    self.Output.append(f"|||Semantic Error: Array as index is not allowed: Line {self.line_ctr(self.c22)}")
+                else:
+                    start_index = declared_id.find('[')
+                    end_index = declared_id.find(']')
+                    array_length = declared_id[start_index + 1:end_index]
                 try:
                     array_length = int(
                         self.replace_variables(array_length,
@@ -1989,9 +2067,13 @@ class Sem:
                 declared_id = declared_id.split('[')[0]
                 if declared_id in self.FuncVariable and declared_id in self.FuncArray:
                     if self.FuncVariableDatatype[declared_id] == "flute":
-                        if value in ['nocap', 'cap']:
-                            self.Output.append(
-                                f"|||Semantic Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True','nocap').replace('False','cap')}\": Line {self.line_ctr(self.c22)}")
+                        if str(value).replace('True', 'nocap').replace('False', 'cap') in ['nocap', 'cap']:
+                            if inputter == 1:
+                                self.Output.append(
+                                    f"|||Runtime Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c22)}")
+                            else:
+                                self.Output.append(
+                                    f"|||Semantic Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c22)}")
                         elif operator == "=":
                             self.FuncVariable[declared_id][array_length] = float(value)
                         elif operator == "+=":
@@ -2010,9 +2092,13 @@ class Sem:
                             self.FuncVariable[declared_id][array_length] = self.FuncVariable[declared_id][
                                                                             array_length] % float(value)
                     elif self.FuncVariableDatatype[declared_id] == "hint":
-                        if value in ['nocap', 'cap']:
-                            self.Output.append(
-                                f"|||Semantic Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True','nocap').replace('False','cap')}\": Line {self.line_ctr(self.c22)}")
+                        if str(value).replace('True', 'nocap').replace('False', 'cap') in ['nocap', 'cap']:
+                            if inputter == 1:
+                                self.Output.append(
+                                    f"|||Runtime Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c22)}")
+                            else:
+                                self.Output.append(
+                                    f"|||Semantic Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c22)}")
                         elif operator == "=":
                             self.FuncVariable[declared_id][array_length] = int(value)
                         elif operator == "+=":
@@ -2054,16 +2140,24 @@ class Sem:
                     elif self.FuncVariableDatatype[declared_id] == "car":
                         if operator == "=":
                             if len(str(value)) != 1:
-                                self.Output.append(
-                                    f"|||Semantic Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True','nocap').replace('False','cap')}\": Line {self.line_ctr(self.c22)}")
+                                if inputter == 1:
+                                    self.Output.append(
+                                        f"|||Runtime Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c22)}")
+                                else:
+                                    self.Output.append(
+                                        f"|||Semantic Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c22)}")
                             self.FuncVariable[declared_id][array_length] = str(value)
                         elif operator in ["+=", "-=", "*=", "/=", "%="]:
                             self.Output.append(
                                 f"|||Semantic Error: Operator not allowed in car values \"{declared_id} {operator} {str(value).replace('True','nocap').replace('False','cap')}\": Line {self.line_ctr(self.c22)}")
                     elif self.FuncVariableDatatype[declared_id] == "bully":
-                        if value not in ['nocap', 'cap']:
-                            self.Output.append(
-                                f"|||Semantic Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True','nocap').replace('False','cap')}\": Line {self.line_ctr(self.c22)}")
+                        if str(value).replace('True', 'nocap').replace('False', 'cap') not in ['nocap', 'cap']:
+                            if inputter == 1:
+                                self.Output.append(
+                                    f"|||Runtime Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c22)}")
+                            else:
+                                self.Output.append(
+                                    f"|||Semantic Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c22)}")
                         if operator == "=":
                             self.FuncVariable[declared_id][array_length] = value
                         elif operator in ["+=", "-=", "*=", "/=", "%="]:
@@ -2093,7 +2187,7 @@ class Sem:
                     try:
                         value = eval(GUI.inputter(desc_display), None, self.bully)
                     except:
-                        self.Output.append(f"|||Semantic Error: user input: Line {self.line_ctr(self.c22)}")
+                        self.Output.append(f"|||Runtime Error: user input: Line {self.line_ctr(self.c22)}")
                     self.Output.append(f"{desc_display} {value} \n")
                 elif self.value[start] == self.value[end] and function_call != 1 and inputter != 1:
                     value = "".join(self.value[start])
@@ -2107,9 +2201,13 @@ class Sem:
                 #changing value from the declaration
                 if declared_id in self.FuncVariable:
                     if self.FuncVariableDatatype[declared_id] == "flute":
-                        if value in ['nocap', 'cap']:
-                            self.Output.append(
-                                f"|||Semantic Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True','nocap').replace('False','cap')}\": Line {self.line_ctr(self.c22)}")
+                        if str(value).replace('True','nocap').replace('False','cap') in ['nocap', 'cap']:
+                            if inputter == 1:
+                                self.Output.append(
+                                    f"|||Runtime Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c22)}")
+                            else:
+                                self.Output.append(
+                                    f"|||Semantic Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c22)}")
                         elif operator == "=":
                             self.FuncVariable[declared_id] = float(value)
                         elif operator == "+=":
@@ -2123,9 +2221,13 @@ class Sem:
                         elif operator == "%=":
                             self.FuncVariable[declared_id] = self.FuncVariable[declared_id] % float(value)
                     elif self.FuncVariableDatatype[declared_id] == "hint":
-                        if value in ['nocap', 'cap']:
-                            self.Output.append(
-                                f"|||Semantic Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True','nocap').replace('False','cap')}\": Line {self.line_ctr(self.c22)}")
+                        if str(value).replace('True', 'nocap').replace('False', 'cap') in ['nocap', 'cap']:
+                            if inputter == 1:
+                                self.Output.append(
+                                    f"|||Runtime Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c22)}")
+                            else:
+                                self.Output.append(
+                                    f"|||Semantic Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c22)}")
                         elif operator == "=":
                             self.FuncVariable[declared_id] = int(value)
                         elif operator == "+=":
@@ -2155,16 +2257,24 @@ class Sem:
                     elif self.FuncVariableDatatype[declared_id] == "car":
                         if operator == "=":
                             if len(str(value)) != 1:
-                                self.Output.append(
-                                    f"|||Semantic Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True','nocap').replace('False','cap')}\": Line {self.line_ctr(self.c22)}")
+                                if inputter == 1:
+                                    self.Output.append(
+                                        f"|||Runtime Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c22)}")
+                                else:
+                                    self.Output.append(
+                                        f"|||Semantic Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c22)}")
                             self.FuncVariable[declared_id] = str(value)
                         elif operator in ["+=", "-=", "*=", "/=", "%="]:
                             self.Output.append(
                                 f"|||Semantic Error: Operator not allowed in car values \"{declared_id} {operator} {str(value).replace('True','nocap').replace('False','cap')}\": Line {self.line_ctr(self.c22)}")
                     elif self.FuncVariableDatatype[declared_id] == "bully":
-                        if value not in ['nocap', 'cap']:
-                            self.Output.append(
-                                f"|||Semantic Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True','nocap').replace('False','cap')}\": Line {self.line_ctr(self.c22)}")
+                        if str(value).replace('True', 'nocap').replace('False', 'cap') not in ['nocap', 'cap']:
+                            if inputter == 1:
+                                self.Output.append(
+                                    f"|||Runtime Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c22)}")
+                            else:
+                                self.Output.append(
+                                    f"|||Semantic Error: Data type mismatch \"{declared_id} {operator} {str(value).replace('True', 'nocap').replace('False', 'cap')}\": Line {self.line_ctr(self.c22)}")
                         if operator == "=":
                             self.FuncVariable[declared_id] = value
                         elif operator in ["+=", "-=", "*=", "/=", "%="]:
