@@ -109,9 +109,26 @@ class Sem:
             if '_' in param_str:  # make _ to - for negative numbers
                 param_str = str(param_str.replace('_', '-'))
             param_str = self.replace_variables(param_str, self.GlobalVar)  # replace the id in param_str with value
-            param_str = param_str.replace("\n", "\\n")
+            param_str = param_str.replace("\n", "\\n").replace('True', 'nocap').replace('False', 'cap').replace('-', '_')
             try:
-                param_tuple = eval(param_str, None, self.bully)  # Try to evaluate the param_str
+                try:
+                    param_tuple = eval(param_str, None, self.bully)  # Try to evaluate the param_str
+                except:
+                    printerr = []
+                    parama = param_str.split(",")
+                    for item in parama:
+                        try:
+                            a = eval(item, None, self.bully)
+                            printerr.append(str(a))
+                        except:
+                            if item.count('`') == 1:
+                                self.Output.append(
+                                    f"|||Semantic Error: Undeclared Variable: Line {self.line_ctr(self.c2)}")
+                            item = '\"' + item.replace('"','') + '\"'
+                            a = eval(item, None, self.bully)
+                            printerr.append(str(a))
+                    param_str = '\"' + "".join(printerr) + '\"'
+                    param_tuple = eval(param_str, None, self.bully)  # Try to evaluate the param_str
             except Exception as e:
                 a = str(e)
                 b = a.replace('int', 'hint').replace('str', 'star').replace('float', 'flute')
@@ -1676,7 +1693,21 @@ class Sem:
                 try:
                     param_tuple = eval(param_str, None, self.bully)  # Try to evaluate the param_str
                 except:
-                    param_tuple = eval("\""+ param_str + "\"", None, self.bully)  # Try to evaluate the param_str
+                    printerr = []
+                    parama = param_str.split(",")
+                    for item in parama:
+                        try:
+                            a = eval(item, None, self.bully)
+                            printerr.append(str(a))
+                        except:
+                            if item.count('`') == 1:
+                                self.Output.append(
+                                    f"|||Semantic Error: Undeclared Variable: Line {self.line_ctr(self.c22)}")
+                            item = '\"' + item.replace('"', '') + '\"'
+                            a = eval(item, None, self.bully)
+                            printerr.append(str(a))
+                    param_str = '\"' + "".join(printerr) + '\"'
+                    param_tuple = eval(param_str, None, self.bully)  # Try to evaluate the param_str
             except Exception as e:
                 a = str(e)
                 b = a.replace('int', 'hint').replace('str', 'star').replace('float', 'flute')
