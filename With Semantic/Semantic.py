@@ -1277,8 +1277,8 @@ class Sem:
                 else:
                     self.Output.append(
                         f"|||Semantic Error: Undeclared Variable in {declared_id} {operator} {str(value).replace('True','nocap').replace('False','cap')}: Line {self.line_ctr(self.c2)}")
-        except:
-            print(value)
+        except Exception as e:
+            print(e)
             self.Output.append(f"|||Semantic Error: in initialization: Line {self.line_ctr(self.c2)}")
 
     def function_call_statement(self):

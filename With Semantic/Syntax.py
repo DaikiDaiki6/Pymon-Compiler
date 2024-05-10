@@ -1271,6 +1271,9 @@ class Syn:
                     f'LINE #{self.lineCounter} : Unexpected ⏵ "{self.currentvalues}" \n\nExpected ⏵ ")"')  # put error in a list for viewing in GUI:
         elif self.currentkeys == ')':
             pass
+        elif self.currentkeys in ['(', 'not', 'cap', 'nocap', 'CARLIT', 'STARLIT', 'HINTLIT', 'FLUTELIT',
+                                    ] or 'IDENTIFIER' in self.currentkeys:
+            self.Tlogical_expression() #NOTSURE PA HERE EXPERIMENT LANG
         else:
             print("SYNTAX ERROR 51.2: Unexpected", self.currentvalues, self.lineCounter)
             self.SyntaxErrors.append(
