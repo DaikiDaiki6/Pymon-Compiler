@@ -805,7 +805,13 @@ class Sem:
                 for variable in variables:
                     desc_display = desc_display.replace(variable, str(self.GlobalVar[variable]))
                 try:
-                    desc_display = eval(desc_display)
+                    try:
+                        desc_display = desc_display.replace("True", "nocap").replace("False", "cap")
+                        desc_display = eval(desc_display)
+                    except:
+                        desc_display = '\"' + str(desc_display).replace('"', '').replace("True", "nocap").replace(
+                            "False", "cap") + '\"'
+                        desc_display = eval(desc_display)
                 except:
                     self.Output.append(f"|||Semantic Error: Pin parameter invalid \"{desc_display}\": Line {self.line_ctr(self.c2)}")
                 try:
@@ -1040,7 +1046,13 @@ class Sem:
                     for variable in variables:
                         desc_display = desc_display.replace(variable, str(self.GlobalVar[variable]))
                     try:
-                        desc_display = eval(desc_display)
+                        try:
+                            desc_display = desc_display.replace("True", "nocap").replace("False", "cap")
+                            desc_display = eval(desc_display)
+                        except:
+                            desc_display = '\"' + str(desc_display).replace('"', '').replace("True", "nocap").replace(
+                                "False", "cap") + '\"'
+                            desc_display = eval(desc_display)
                     except:
                         self.Output.append(f"|||Semantic Error: Pin parameter invalid\"{desc_display}\": Line {self.line_ctr(self.c2)}")
                     try:
@@ -1176,7 +1188,13 @@ class Sem:
                     for variable in variables:
                         desc_display = desc_display.replace(variable, str(self.GlobalVar[variable]))
                     try:
-                        desc_display = eval(desc_display)
+                        try:
+                            desc_display = desc_display.replace("True", "nocap").replace("False", "cap")
+                            desc_display = eval(desc_display)
+                        except:
+                            desc_display = '\"' + str(desc_display).replace('"', '').replace("True", "nocap").replace(
+                                "False", "cap") + '\"'
+                            desc_display = eval(desc_display)
                     except:
                         self.Output.append(f"|||Semantic Error: Pin parameter invalid \"{desc_display}\": Line {self.line_ctr(self.c2)}")
                     try:
@@ -2181,7 +2199,13 @@ class Sem:
                     for variable in variables:
                         desc_display = desc_display.replace(variable, str(self.FuncVariable[variable]))
                     try:
-                        desc_display = eval(desc_display)
+                        try:
+                            desc_display = desc_display.replace("True", "nocap").replace("False", "cap")
+                            desc_display = eval(desc_display)
+                        except:
+                            desc_display = '\"' + str(desc_display).replace('"', '').replace("True", "nocap").replace(
+                                "False", "cap") + '\"'
+                            desc_display = eval(desc_display)
                     except:
                         self.Output.append(f"|||Semantic Error: Pin parameter invalid \"{desc_display}\": Line {self.line_ctr(self.c22)}")
                     try:
