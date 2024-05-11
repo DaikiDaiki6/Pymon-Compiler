@@ -225,8 +225,8 @@ class Sem:
                         self.initialization_statement()
                     elif self.c1 == '<pass+>':
                         pass
-                    elif self.c1 == '<function call+>':
-                        pass
+                    elif self.c1 == '<function call statement+>':
+                        self.function_call_statement()
                     self.next()
                 while self.c1 != '<condition statement->':
                     self.next()
@@ -254,6 +254,8 @@ class Sem:
                                     self.initialization_statement()
                                 elif self.c1 == '<pass+>':
                                     pass
+                                elif self.c1 == '<function call statement+>':
+                                    self.function_call_statement()
                                 self.next()
                         else:
                             while self.c1 != '<elif with body->':
@@ -272,6 +274,8 @@ class Sem:
                                 self.initialization_statement()
                             elif self.c1 == '<pass+>':
                                 pass
+                            elif self.c1 == '<function call statement+>':
+                                self.function_call_statement()
                             self.next()
                 else:
                     while self.c1 != '<condition statement->':
@@ -310,6 +314,8 @@ class Sem:
                         pass
                     elif self.c1 == '<continue>':
                         continue
+                    elif self.c1 == '<function call statement+>':
+                        self.function_call_statement()
                     elif self.c1 == '<break>':
                         while self.c1 != '<loop body->':
                             self.next()
@@ -349,6 +355,8 @@ class Sem:
                                     pass
                                 elif self.c1 == '<continue>':
                                     continue
+                                elif self.c1 == '<function call statement+>':
+                                    self.function_call_statement()
                                 elif self.c1 == '<break>':
                                     while self.c1 != '<loop body->':
                                         self.next()
@@ -378,6 +386,8 @@ class Sem:
                                 pass
                             elif self.c1 == '<continue>':
                                 continue
+                            elif self.c1 == '<function call statement+>':
+                                self.function_call_statement()
                             elif self.c1 == '<break>':
                                 while self.c1 != '<loop body->':
                                     self.next()
@@ -448,6 +458,8 @@ class Sem:
                                     pass
                                 elif self.c1 == '<continue>':
                                     continue
+                                elif self.c1 == '<function call statement+>':
+                                    self.function_call_statement()
                                 elif self.c1 == '<break>':
                                     while self.c1 != '<loop body->':
                                         self.next()
@@ -493,6 +505,8 @@ class Sem:
                                         pass
                                     elif self.c1 == '<continue>':
                                         continue
+                                    elif self.c1 == '<function call statement+>':
+                                        self.function_call_statement()
                                     elif self.c1 == '<break>':
                                         while self.c1 != '<loop body->':
                                             self.next()
@@ -538,6 +552,8 @@ class Sem:
                                         pass
                                     elif self.c1 == '<continue>':
                                         continue
+                                    elif self.c1 == '<function call statement+>':
+                                        self.function_call_statement()
                                     elif self.c1 == '<break>':
                                         while self.c1 != '<loop body->':
                                             self.next()
@@ -583,6 +599,8 @@ class Sem:
                                         pass
                                     elif self.c1 == '<continue>':
                                         continue
+                                    elif self.c1 == '<function call statement+>':
+                                        self.function_call_statement()
                                     elif self.c1 == '<break>':
                                         while self.c1 != '<loop body->':
                                             self.next()
@@ -622,6 +640,8 @@ class Sem:
                                         pass
                                     elif self.c1 == '<continue>':
                                         continue
+                                    elif self.c1 == '<function call statement+>':
+                                        self.function_call_statement()
                                     elif self.c1 == '<break>':
                                         while self.c1 != '<loop body->':
                                             self.next()
@@ -674,6 +694,8 @@ class Sem:
                                 pass
                             elif self.c1 == '<continue>':
                                 continue
+                            elif self.c1 == '<function call statement+>':
+                                self.function_call_statement()
                             elif self.c1 == '<break>':
                                 while self.c1 != '<loop body->':
                                     self.next()
