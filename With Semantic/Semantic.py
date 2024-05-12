@@ -870,6 +870,8 @@ class Sem:
                     self.Output.append(f"|||Semantic Error: Pin parameter invalid \"{desc_display}\": Line {self.line_ctr(self.c2)}")
                 try:
                     value = eval(GUI.inputter(desc_display), None, self.bully)
+                    if datatype == "star":
+                        value = str(value)
                 except:
                     self.Output.append(f"|||Runtime Error: user input: Line {self.line_ctr(self.c2)}")
                 valuetype = datatype
@@ -1925,6 +1927,8 @@ class Sem:
                     self.Output.append(f"|||Semantic Error: expression in \"{desc_display}\": Line {self.line_ctr(self.c22)}")
                 try:
                     value = eval(GUI.inputter(desc_display), None, self.bully)
+                    if datatype == "star":
+                        value = str(value)
                 except:
                     self.Output.append(f"|||Semantic Error: user input: Line {self.line_ctr(self.c22)}")
                 valuetype = datatype
