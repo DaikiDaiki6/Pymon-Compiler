@@ -875,7 +875,11 @@ class Sem:
                 except:
                     self.Output.append(f"|||Runtime Error: user input: Line {self.line_ctr(self.c2)}")
                 valuetype = datatype
-                self.Output.append(f"{desc_display} {value} \n")
+                if valuetype == "hint" or valuetype == "flute":
+                    value2 = str(value).replace('-', '_')
+                else:
+                    value2 = value
+                self.Output.append(f"{desc_display} {value2} \n")
 
             elif valuetype != "" and valuetype != "hasid":  # hint `a and for evaluating array
                 if len(value) > 1 and type(value) == list:
@@ -1115,7 +1119,11 @@ class Sem:
                         value = eval(GUI.inputter(desc_display), None, self.bully)
                     except:
                         self.Output.append(f"|||Runtime Error: user input: Line {self.line_ctr(self.c2)}")
-                    self.Output.append(f"{desc_display} {value} \n")
+                    if self.GlobalDatatype[declared_id[:declared_id.find('[')]] == "hint" or self.GlobalDatatype[declared_id[:declared_id.find('[')]] == "flute":
+                        value2 = str(value).replace('-', '_')
+                    else:
+                        value2 = value
+                    self.Output.append(f"{desc_display} {value2} \n")
                 elif self.value[start] == self.value[end] and function_call != 1 and inputter != 1:
                     value = "".join(self.value[start])
                 elif self.value[start] != self.value[end] and function_call != 1 and inputter != 1:
@@ -1257,7 +1265,12 @@ class Sem:
                         value = eval(GUI.inputter(desc_display), None, self.bully)
                     except:
                         self.Output.append(f"|||Runtime Error: user input: Line {self.line_ctr(self.c2)}")
-                    self.Output.append(f"{desc_display} {value} \n")
+                    if self.GlobalDatatype[declared_id] == "hint" or self.GlobalDatatype[
+                        declared_id] == "flute":
+                        value2 = str(value).replace('-', '_')
+                    else:
+                        value2 = value
+                    self.Output.append(f"{desc_display} {value2} \n")
                 elif self.value[start] == self.value[end] and function_call != 1 and inputter != 1:
                     value = "".join(self.value[start])
                 elif self.value[start] != self.value[end] and function_call != 1 and inputter != 1:
@@ -1938,7 +1951,11 @@ class Sem:
                 except:
                     self.Output.append(f"|||Semantic Error: user input: Line {self.line_ctr(self.c22)}")
                 valuetype = datatype
-                self.Output.append(f"{desc_display} {value} \n")
+                if valuetype == "hint" or valuetype == "flute":
+                    value2 = str(value).replace('-','_')
+                else:
+                    value2 = value
+                self.Output.append(f"{desc_display} {value2} \n")
 
             elif valuetype != "" and valuetype != "hasid":  # hint `a and for evaluating array
                 if len(value) > 1 and type(value) == list:
@@ -2149,7 +2166,12 @@ class Sem:
                         value = eval(GUI.inputter(desc_display), None, self.bully)
                     except:
                         self.Output.append(f"|||Runtime Error: user input: Line {self.line_ctr(self.c22)}")
-                    self.Output.append(f"{desc_display} {value} \n")
+                    if self.FuncVariableDatatype[declared_id[:declared_id.find('[')]] == "hint" or self.FuncVariableDatatype[
+                        declared_id[:declared_id.find('[')]] == "flute":
+                        value2 = str(value).replace('-', '_')
+                    else:
+                        value2 = value
+                    self.Output.append(f"{desc_display} {value2} \n")
                 elif self.value[start] == self.value[end] and function_call != 1 and inputter != 1:
                     value = "".join(self.value[start])
                 elif self.value[start] != self.value[end] and function_call != 1 and inputter != 1:
@@ -2305,7 +2327,12 @@ class Sem:
                         value = eval(GUI.inputter(desc_display), None, self.bully)
                     except:
                         self.Output.append(f"|||Runtime Error: user input: Line {self.line_ctr(self.c22)}")
-                    self.Output.append(f"{desc_display} {value} \n")
+                    if self.FuncVariableDatatype[declared_id] == "hint" or self.FuncVariableDatatype[
+                        declared_id] == "flute":
+                        value2 = str(value).replace('-', '_')
+                    else:
+                        value2 = value
+                    self.Output.append(f"{desc_display} {value2} \n")
                 elif self.value[start] == self.value[end] and function_call != 1 and inputter != 1:
                     value = "".join(self.value[start])
                 elif self.value[start] != self.value[end] and function_call != 1 and inputter != 1:
