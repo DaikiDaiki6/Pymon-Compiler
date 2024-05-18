@@ -125,7 +125,7 @@ class Sem:
                                 self.Output.append(
                                     f"|||Semantic Error: Undeclared Variable: Line {self.line_ctr(self.c2)}")
                             try:
-                                a = eval(item, None, self.bully)
+                                a = eval(item.replace("_","-"), None, self.bully)
                             except Exception as e:
                                 a = str(e)
                                 b = a.replace('int', 'hint').replace('str', 'star').replace('float', 'flute')
@@ -137,11 +137,12 @@ class Sem:
                                     self.Output.append(f"|||Semantic Error: {b}: Line {self.line_ctr(self.c2)}")
                                 elif a == "unsupported operand type(s) for +: 'float' and 'str'":
                                     self.Output.append(f"|||Semantic Error: {b}: Line {self.line_ctr(self.c2)}")
-
+                                print("XCX")
                                 item = '\"' + item.replace('"', '')+ '\"'
                                 a = eval(item, None, self.bully)
                             printerr.append(str(a))
                     param_str = '\"' + "".join(printerr) + '\"'
+                    print(param_str, param_str.replace("_", "-"), eval(param_str.replace("\n", "\\n").replace("_", "-").replace("\t", "\\t") , None, self.bully))  # Try to evaluate the param_str)
                     param_tuple = eval(param_str.replace("\n", "\\n").replace("\t", "\\t") , None, self.bully)  # Try to evaluate the param_str
             except Exception as e:
                 a = str(e)
@@ -1756,7 +1757,7 @@ class Sem:
                                 self.Output.append(
                                     f"|||Semantic Error: Undeclared Variable: Line {self.line_ctr(self.c22)}")
                             try:
-                                a = eval(item, None, self.bully)
+                                a = eval(item.replace("_","-"), None, self.bully)
                             except Exception as e:
                                 a = str(e)
                                 b = a.replace('int', 'hint').replace('str', 'star').replace('float', 'flute')
