@@ -1,4 +1,5 @@
 import GUI
+import re
 
 class Sem:
     def __init__(self, Terminals, Sequence):
@@ -75,7 +76,6 @@ class Sem:
     def output_statement(self):
         output = ""
         try:
-# {'<output statement+>': 1}, {'<parameter+>': 2}, {'<math expression+>': 3}, {'<number value>': 3}, {'<math expression->': 3}, {'<parameter->': 4}, {'<output statement->': 4}
             while self.c1 != '<output statement->':
                 if self.c1 == '<parameter+>':
                     output = self.parameter()  # Get the output from self.parameter
@@ -125,7 +125,7 @@ class Sem:
                                 self.Output.append(
                                     f"|||Semantic Error: Undeclared Variable: Line {self.line_ctr(self.c2)}")
                             try:
-                                a = eval(item.replace("_","-"), None, self.bully)
+                                    a = eval(item.replace("_","-"), None, self.bully)
                             except Exception as e:
                                 a = str(e)
                                 b = a.replace('int', 'hint').replace('str', 'star').replace('float', 'flute')
@@ -137,7 +137,8 @@ class Sem:
                                     self.Output.append(f"|||Semantic Error: {b}: Line {self.line_ctr(self.c2)}")
                                 elif a == "unsupported operand type(s) for +: 'float' and 'str'":
                                     self.Output.append(f"|||Semantic Error: {b}: Line {self.line_ctr(self.c2)}")
-                                print("XCX")
+                                elif "unmatched ']'" in a:
+                                    self.Output.append(f"|||Semantic Error: Array Index range exceeded: Line {self.line_ctr(self.c2)}")
                                 item = '\"' + item.replace('"', '')+ '\"'
                                 a = eval(item, None, self.bully)
                             printerr.append(str(a))
@@ -155,7 +156,8 @@ class Sem:
                     self.Output.append(f"|||Semantic Error: {b}: Line {self.line_ctr(self.c2)}")
                 elif a == "unsupported operand type(s) for +: 'float' and 'str'":
                     self.Output.append(f"|||Semantic Error: {b}: Line {self.line_ctr(self.c2)}")
-
+                elif "unmatched ']'" in a:
+                    self.Output.append(f"|||Semantic Error: Array Index range exceeded: Line {self.line_ctr(self.c2)}")
             if isinstance(param_tuple, tuple):  # Check if param_tuple is a single item
                 param_str = "".join(str(item) for item in param_tuple)
             else:
@@ -1769,7 +1771,8 @@ class Sem:
                                     self.Output.append(f"|||Semantic Error: {b}: Line {self.line_ctr(self.c22)}")
                                 elif a == "unsupported operand type(s) for +: 'float' and 'str'":
                                     self.Output.append(f"|||Semantic Error: {b}: Line {self.line_ctr(self.c22)}")
-
+                                elif "unmatched ']'" in a:
+                                    self.Output.append(f"|||Semantic Error: Array Index range exceeded: Line {self.line_ctr(self.c22)}")
                                 item = '\"' + item.replace('"', '') + '\"'
                                 a = eval(item, None, self.bully)
                             printerr.append(str(a))
@@ -1791,7 +1794,8 @@ class Sem:
                 elif "invalid syntax (<string>" in a:
                     self.Output.append(
                         f"|||Semantic Error: Invalid expression: Line {self.line_ctr(self.c22)}")
-
+                elif "unmatched ']'" in a:
+                    self.Output.append(f"|||Semantic Error: Array Index range exceeded: Line {self.line_ctr(self.c22)}")
             if isinstance(param_tuple, tuple):  # Check if param_tuple is a single item
                 param_str = "".join(str(item) for item in param_tuple)
             else:
