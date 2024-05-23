@@ -112,7 +112,7 @@ class Sem:
             param_str = param_str.replace("\n", "\\n").replace('True', 'nocap').replace('False', 'cap').replace('-', '_')
             try:
                 try:
-                    param_tuple = eval(param_str, None, self.bully)  # Try to evaluate the param_str
+                    param_tuple = (eval(param_str.replace("_", "-"), None, self.bully))  # Try to evaluate the param_str
                 except:
                     printerr = []
                     parama = param_str.split(",")
@@ -125,8 +125,9 @@ class Sem:
                                 self.Output.append(
                                     f"|||Semantic Error: Undeclared Variable: Line {self.line_ctr(self.c2)}")
                             try:
-                                    a = eval(item.replace("_","-"), None, self.bully)
+                                a = eval(item.replace("_","-"), None, self.bully)
                             except Exception as e:
+                                #print(e, "|||", repr(item), "|||", parama)
                                 a = str(e)
                                 b = a.replace('int', 'hint').replace('str', 'star').replace('float', 'flute')
                                 if a == "unsupported operand type(s) for +: 'int' and 'str'":
@@ -143,9 +144,10 @@ class Sem:
                                 a = eval(item, None, self.bully)
                             printerr.append(str(a))
                     param_str = '\"' + "".join(printerr) + '\"'
-                    print(param_str, param_str.replace("_", "-"), eval(param_str.replace("\n", "\\n").replace("_", "-").replace("\t", "\\t") , None, self.bully))  # Try to evaluate the param_str)
+                    #print(param_str, param_str.replace("_", "-"), eval(param_str.replace("\n", "\\n").replace("_", "-").replace("\t", "\\t") , None, self.bully))  # Try to evaluate the param_str)
                     param_tuple = eval(param_str.replace("\n", "\\n").replace("\t", "\\t") , None, self.bully)  # Try to evaluate the param_str
             except Exception as e:
+                print(e)
                 a = str(e)
                 b = a.replace('int', 'hint').replace('str', 'star').replace('float', 'flute')
                 if a == "unsupported operand type(s) for +: 'int' and 'str'":
@@ -161,7 +163,7 @@ class Sem:
             if isinstance(param_tuple, tuple):  # Check if param_tuple is a single item
                 param_str = "".join(str(item) for item in param_tuple)
             else:
-                param_str = str(param_tuple)  # if not tuple convert to string directly
+                param_str = str(param_tuple)  # if n"ot tuple convert to string directly
 
             param_fixed = param_str.replace('True', 'nocap').replace('False', 'cap').replace('-', '_')
             return param_fixed
@@ -1746,7 +1748,7 @@ class Sem:
             param_str = param_str.replace("\n", "\\n")
             try:
                 try:
-                    param_tuple = eval(param_str, None, self.bully)  # Try to evaluate the param_str
+                    param_tuple = eval(param_str.replace("_", "-"), None, self.bully)  # Try to evaluate the param_str
                 except:
                     printerr = []
                     parama = param_str.split(",")
