@@ -115,8 +115,9 @@ class Sem:
                     param_tuple = (eval(param_str.replace("_", "-"), None, self.bully))  # Try to evaluate the param_str
                 except:
                     printerr = []
-                    parama = param_str.split(",")
+                    parama = eval(param_str.replace("_","-"), None, self.bully)
                     for item in parama:
+                        item = str(item)
                         try:
                             a = eval(item, None, self.bully)
                             printerr.append(str(a))
@@ -127,7 +128,6 @@ class Sem:
                             try:
                                 a = eval(item.replace("_","-"), None, self.bully)
                             except Exception as e:
-                                #print(e, "|||", repr(item), "|||", parama)
                                 a = str(e)
                                 b = a.replace('int', 'hint').replace('str', 'star').replace('float', 'flute')
                                 if a == "unsupported operand type(s) for +: 'int' and 'str'":
@@ -141,13 +141,11 @@ class Sem:
                                 elif "unmatched ']'" in a:
                                     self.Output.append(f"|||Semantic Error: Array Index range exceeded: Line {self.line_ctr(self.c2)}")
                                 item = '\"' + item.replace('"', '')+ '\"'
-                                a = eval(item, None, self.bully)
+                                a = eval(item.replace("_","-"), None, self.bully)
                             printerr.append(str(a))
                     param_str = '\"' + "".join(printerr) + '\"'
-                    #print(param_str, param_str.replace("_", "-"), eval(param_str.replace("\n", "\\n").replace("_", "-").replace("\t", "\\t") , None, self.bully))  # Try to evaluate the param_str)
                     param_tuple = eval(param_str.replace("\n", "\\n").replace("\t", "\\t") , None, self.bully)  # Try to evaluate the param_str
             except Exception as e:
-                print(e)
                 a = str(e)
                 b = a.replace('int', 'hint').replace('str', 'star').replace('float', 'flute')
                 if a == "unsupported operand type(s) for +: 'int' and 'str'":
@@ -1751,8 +1749,9 @@ class Sem:
                     param_tuple = eval(param_str.replace("_", "-"), None, self.bully)  # Try to evaluate the param_str
                 except:
                     printerr = []
-                    parama = param_str.split(",")
+                    parama = eval(param_str.replace("_","-"), None, self.bully)
                     for item in parama:
+                        item = str(item)
                         try:
                             a = eval(item, None, self.bully)
                             printerr.append(str(a))
@@ -1776,7 +1775,7 @@ class Sem:
                                 elif "unmatched ']'" in a:
                                     self.Output.append(f"|||Semantic Error: Array Index range exceeded: Line {self.line_ctr(self.c22)}")
                                 item = '\"' + item.replace('"', '') + '\"'
-                                a = eval(item, None, self.bully)
+                                a = eval(item.replace("_","-"), None, self.bully)
                             printerr.append(str(a))
                         param_str = '\"' + "".join(printerr) + '\"'
                         param_tuple = eval(param_str.replace("\n", "\\n").replace("\t", "\\t"), None,
