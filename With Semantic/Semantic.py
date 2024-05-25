@@ -159,8 +159,13 @@ class Sem:
                 elif "unmatched ']'" in a or "list index out of range" in a:
                     self.Output.append(f"|||Semantic Error: Array Index range exceeded: Line {self.line_ctr(self.c2)}")
                 else:
-                    param_tuple = eval(param_str.replace("\n", "\\n").replace("\t", "\\t"), None,
-                                   self.bully)  # Try to evaluate the param_str
+                    if param_str.count('`') >= 1:
+                        self.Output.append(
+                            f"|||Semantic Error: Undeclared Variable: Line {self.line_ctr(self.c2)}")
+                    else:
+                        print("XX", repr(param_str))
+                        param_str = '\"' + "".join(param_str).replace('"','') + '\"'
+                        param_tuple = eval(param_str.replace("\n", "\\n").replace("\t", "\\t"), None, self.bully)
             if isinstance(param_tuple, tuple):  # Check if param_tuple is a single item
                 param_str = "".join(str(item) for item in param_tuple)
             else:
@@ -169,7 +174,6 @@ class Sem:
             param_fixed = param_str.replace('True', 'nocap').replace('False', 'cap').replace('-', '_')
             return param_fixed
         except Exception as e:
-            print(e)
             a = str(e)
             if "unmatched ']'" in a or "list index out of range" in a:
                 self.Output.append(f"|||Semantic Error: Array Index range exceeded: Line {self.line_ctr(self.c2)}")
@@ -1799,14 +1803,15 @@ class Sem:
                 elif "unexpected EOF while parsing" in a:
                     self.Output.append(
                         f"|||Semantic Error: star cannot be operated with other data types: Line {self.line_ctr(self.c22)}")
-                elif "invalid syntax (<string>" in a:
-                    self.Output.append(
-                        f"|||Semantic Error: Invalid expression: Line {self.line_ctr(self.c22)}")
                 elif "unmatched ']'" in a or "list index out of range" in a:
                     self.Output.append(f"|||Semantic Error: Array Index range exceeded: Line {self.line_ctr(self.c22)}")
                 else:
-                    param_tuple = eval(param_str.replace("\n", "\\n").replace("\t", "\\t"), None,
-                                       self.bully)  # Try to evaluate the param_str
+                    if param_str.count('`') >= 1:
+                        self.Output.append(
+                            f"|||Semantic Error: Undeclared Variable: Line {self.line_ctr(self.c22)}")
+                    else:
+                        param_str = '\"' + "".join(param_str).replace('"', '') + '\"'
+                        param_tuple = eval(param_str.replace("\n", "\\n").replace("\t", "\\t"), None, self.bully)
             if isinstance(param_tuple, tuple):  # Check if param_tuple is a single item
                 param_str = "".join(str(item) for item in param_tuple)
             else:
