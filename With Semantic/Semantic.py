@@ -138,6 +138,9 @@ class Sem:
                                     self.Output.append(f"|||Semantic Error: {b}: Line {self.line_ctr(self.c2)}")
                                 elif a == "unsupported operand type(s) for +: 'float' and 'str'":
                                     self.Output.append(f"|||Semantic Error: {b}: Line {self.line_ctr(self.c2)}")
+                                elif a == 'can only concatenate list (not "int") to list':
+                                    self.Output.append(
+                                        f"|||Semantic Error: Whole arrays cannot be used in math expressions: Line {self.line_ctr(self.c2)}")
                                 elif "unmatched ']'" in a or "list index out of range" in a:
                                     self.Output.append(f"|||Semantic Error: Array Index range exceeded: Line {self.line_ctr(self.c2)}")
                                 item = '\"' + item.replace('"', '')+ '\"'
@@ -146,6 +149,7 @@ class Sem:
                     param_str = '\"' + "".join(printerr) + '\"'
                     param_tuple = eval(param_str.replace("\n", "\\n").replace("\t", "\\t") , None, self.bully)  # Try to evaluate the param_str
             except Exception as e:
+                print(e)
                 a = str(e)
                 b = a.replace('int', 'hint').replace('str', 'star').replace('float', 'flute')
                 if a == "unsupported operand type(s) for +: 'int' and 'str'":
@@ -158,12 +162,13 @@ class Sem:
                     self.Output.append(f"|||Semantic Error: {b}: Line {self.line_ctr(self.c2)}")
                 elif "unmatched ']'" in a or "list index out of range" in a:
                     self.Output.append(f"|||Semantic Error: Array Index range exceeded: Line {self.line_ctr(self.c2)}")
+                elif a == 'can only concatenate list (not "int") to list':
+                    self.Output.append(f"|||Semantic Error: Whole arrays cannot be used in math expressions: Line {self.line_ctr(self.c2)}")
                 else:
                     if param_str.count('`') >= 1:
                         self.Output.append(
                             f"|||Semantic Error: Undeclared Variable: Line {self.line_ctr(self.c2)}")
                     else:
-                        print("XX", repr(param_str))
                         param_str = '\"' + "".join(param_str).replace('"','') + '\"'
                         param_tuple = eval(param_str.replace("\n", "\\n").replace("\t", "\\t"), None, self.bully)
             if isinstance(param_tuple, tuple):  # Check if param_tuple is a single item
@@ -788,6 +793,7 @@ class Sem:
                         value = self.value[
                                 self.Sequence[start]['<allowed value+>']: self.Sequence[end - 1]['<allowed value->']]
                         value.append(self.value[self.c2])
+                        print(value)
                         value = [item for item in value if item != '"\\n"']
                         value1 = "".join(value).replace("_", "-")
                         print(value1, datatype)
@@ -1783,6 +1789,9 @@ class Sem:
                                     self.Output.append(f"|||Semantic Error: {b}: Line {self.line_ctr(self.c22)}")
                                 elif a == "unsupported operand type(s) for +: 'float' and 'str'":
                                     self.Output.append(f"|||Semantic Error: {b}: Line {self.line_ctr(self.c22)}")
+                                elif a == 'can only concatenate list (not "int") to list':
+                                    self.Output.append(
+                                        f"|||Semantic Error: Whole arrays cannot be used in math expressions: Line {self.line_ctr(self.c22)}")
                                 elif "unmatched ']'" in a or "list index out of range" in a:
                                     self.Output.append(f"|||Semantic Error: Array Index range exceeded: Line {self.line_ctr(self.c22)}")
                                 item = '\"' + item.replace('"', '') + '\"'
@@ -1805,6 +1814,8 @@ class Sem:
                         f"|||Semantic Error: star cannot be operated with other data types: Line {self.line_ctr(self.c22)}")
                 elif "unmatched ']'" in a or "list index out of range" in a:
                     self.Output.append(f"|||Semantic Error: Array Index range exceeded: Line {self.line_ctr(self.c22)}")
+                elif a == 'can only concatenate list (not "int") to list':
+                    self.Output.append(f"|||Semantic Error: Whole arrays cannot be used in math expressions: Line {self.line_ctr(self.c22)}")
                 else:
                     if param_str.count('`') >= 1:
                         self.Output.append(
