@@ -2488,7 +2488,7 @@ class Sem:
                 h1 = "".join(self.value[start:end]).replace("(", '').replace("_", "-")
                 self.funcnext()
                 startpos_loop = self.FuncPosition  # this is the variable in which they will go
-                h1 = self.replace_variables(h1, self.GlobalVar)  # replace the id in param_str with value
+                h1 = self.replace_variables(h1, self.FuncVariable)  # replace the id in param_str with value
                 h1 = h1.replace("\n", "\\n")
                 try:
                     result = eval(h1, None, self.bully)  # it will return the range parameter, either 1 or tuple
